@@ -4,459 +4,272 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Smart Library Management System</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
-    .glass { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(12px); }
-    .sidebar-active { background-color: #4f46e5; color: #ffffff; }
+    body { background-color: #0f172a; color: #f8fafc; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    .sidebar { min-height: 100vh; background-color: #1e293b; border-right: 1px solid #334155; }
+    .nav-link { color: #94a3b8; margin-bottom: 0.5rem; }
+    .nav-link:hover, .nav-link.active { color: #38bdf8; background-color: #334155; border-radius: 8px; }
+    .card-custom { background-color: #1e293b; border: 1px solid #334155; border-radius: 12px; }
+    .modal-content { background-color: #1e293b; color: #f8fafc; border: 1px solid #334155; }
+    .form-control, .form-select { background-color: #0f172a; color: #f8fafc; border: 1px solid #334155; }
+    .form-control:focus, .form-select:focus { background-color: #0f172a; color: #f8fafc; border-color: #38bdf8; }
   </style>
 </head>
-<body class="bg-slate-900 text-slate-100 min-h-screen flex font-sans antialiased">
-
-  <!-- Sidebar Navigation -->
-  <aside class="w-64 bg-slate-950 border-r border-slate-800 flex flex-col justify-between hidden md:flex">
-    <div>
-      <div class="p-6 flex items-center gap-3 border-b border-slate-800">
-        <div class="p-2 bg-indigo-600 rounded-lg text-white">
-          <i class="fa-solid fa-book-bookmark text-xl"></i>
-        </div>
-        <div>
-          <h1 class="font-bold text-base tracking-wide text-white">Smart LMS</h1>
-          <p class="text-xs text-indigo-400 font-semibold">Capstone Edition</p>
-        </div>
-      </div>
-
-      <nav class="p-4 space-y-1.5 text-sm font-medium">
-        <button onclick="switchTab('dashboard')" id="nav-dashboard" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl sidebar-active transition">
-          <i class="fa-solid fa-chart-pie w-5"></i> Dashboard
-        </button>
-        <button onclick="switchTab('books')" id="nav-books" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:bg-slate-800 hover:text-white transition">
-          <i class="fa-solid fa-book w-5"></i> Book Catalog
-        </button>
-        <button onclick="switchTab('members')" id="nav-members" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:bg-slate-800 hover:text-white transition">
-          <i class="fa-solid fa-users w-5"></i> Member Directory
-        </button>
-        <button onclick="switchTab('circulation')" id="nav-circulation" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:bg-slate-800 hover:text-white transition">
-          <i class="fa-solid fa-arrow-right-arrow-left w-5"></i> Issue / Return
-        </button>
-        <button onclick="switchTab('fines')" id="nav-fines" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:bg-slate-800 hover:text-white transition">
-          <i class="fa-solid fa-receipt w-5"></i> Fines Management
-        </button>
-        <button onclick="switchTab('reviews')" id="nav-reviews" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:bg-slate-800 hover:text-white transition">
-          <i class="fa-solid fa-star w-5"></i> NoSQL Reviews
-        </button>
-        <button onclick="switchTab('recommendations')" id="nav-recommendations" class="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:bg-slate-800 hover:text-white transition">
-          <i class="fa-solid fa-circle-nodes w-5"></i> Neo4j AI Graph
-        </button>
-      </nav>
-    </div>
-
-    <div class="p-4 border-t border-slate-800">
-      <div class="bg-slate-900 p-3 rounded-xl flex items-center gap-3">
-        <div class="w-9 h-9 rounded-full bg-indigo-500/20 text-indigo-400 flex items-center font-bold justify-center">
-          A
-        </div>
-        <div>
-          <p class="text-xs font-bold text-white">Administrator</p>
-          <p class="text-[10px] text-slate-400">Full Access Role</p>
-        </div>
-      </div>
-    </div>
-  </aside>
-
-  <!-- Main View Area -->
-  <div class="flex-1 flex flex-col min-w-0 overflow-y-auto bg-slate-900">
-
-    <!-- Top Navigation Bar -->
-    <header class="p-4 bg-slate-950/50 border-b border-slate-800 flex justify-between items-center sticky top-0 z-10 glass">
-      <h2 id="page-title" class="text-lg font-bold text-white flex items-center gap-2">
-        <i class="fa-solid fa-chart-pie text-indigo-500"></i> Executive Dashboard
-      </h2>
-      <div class="flex items-center gap-3">
-        <span class="bg-indigo-500/10 border border-indigo-500/30 text-indigo-400 text-xs px-3 py-1 rounded-full font-semibold">Hybrid SQL + NoSQL + Graph</span>
-        <button onclick="refreshData()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-2 transition">
-          <i class="fa-solid fa-rotate"></i> Sync Data
-        </button>
-      </div>
-    </header>
-
-    <div class="p-6 max-w-7xl w-full mx-auto space-y-6">
-
-      <!-- TAB 1: EXECUTIVE DASHBOARD -->
-      <div id="tab-dashboard" class="space-y-6">
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div class="bg-slate-800/80 border border-slate-700/60 p-5 rounded-2xl">
-            <div class="flex justify-between items-start text-slate-400">
-              <span class="text-xs font-bold uppercase tracking-wider">Total Books</span>
-              <i class="fa-solid fa-book-bookmark text-indigo-400"></i>
-            </div>
-            <p id="dash-books" class="text-3xl font-black text-white mt-2">1,248</p>
-            <span class="text-[11px] text-emerald-400 font-medium">MySQL Master Index</span>
-          </div>
-          <div class="bg-slate-800/80 border border-slate-700/60 p-5 rounded-2xl">
-            <div class="flex justify-between items-start text-slate-400">
-              <span class="text-xs font-bold uppercase tracking-wider">Available Copies</span>
-              <i class="fa-solid fa-square-check text-emerald-400"></i>
-            </div>
-            <p id="dash-avail" class="text-3xl font-black text-white mt-2">912</p>
-            <span class="text-[11px] text-emerald-400 font-medium">Ready for Issue</span>
-          </div>
-          <div class="bg-slate-800/80 border border-slate-700/60 p-5 rounded-2xl">
-            <div class="flex justify-between items-start text-slate-400">
-              <span class="text-xs font-bold uppercase tracking-wider">Active Loans</span>
-              <i class="fa-solid fa-hand-holding-hand text-amber-400"></i>
-            </div>
-            <p id="dash-loans" class="text-3xl font-black text-white mt-2">336</p>
-            <span class="text-[11px] text-amber-400 font-medium">Tracked Transactions</span>
-          </div>
-          <div class="bg-slate-800/80 border border-slate-700/60 p-5 rounded-2xl">
-            <div class="flex justify-between items-start text-slate-400">
-              <span class="text-xs font-bold uppercase tracking-wider">Pending Fines</span>
-              <i class="fa-solid fa-circle-dollar-to-slot text-rose-400"></i>
-            </div>
-            <p id="dash-fines" class="text-3xl font-black text-white mt-2">$420</p>
-            <span class="text-[11px] text-rose-400 font-medium">Auto-Calculated Overdues</span>
-          </div>
-        </div>
-
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div class="lg:col-span-2 bg-slate-800/80 border border-slate-700/60 p-6 rounded-2xl space-y-4">
-            <div class="flex justify-between items-center">
-              <h3 class="font-bold text-white flex items-center gap-2"><i class="fa-solid fa-clock-rotate-left text-indigo-400"></i> Recent Loans & Transactions</h3>
-              <button onclick="switchTab('circulation')" class="text-xs text-indigo-400 hover:underline">Manage All</button>
-            </div>
-            <div class="overflow-x-auto">
-              <table class="w-full text-left text-xs border-collapse">
-                <thead>
-                  <tr class="text-slate-400 border-b border-slate-700 uppercase font-semibold">
-                    <th class="py-2.5">Tx ID</th>
-                    <th class="py-2.5">Member</th>
-                    <th class="py-2.5">Book Title</th>
-                    <th class="py-2.5">Due Date</th>
-                    <th class="py-2.5">Status</th>
-                  </tr>
-                </thead>
-                <tbody id="recent-tx-body" class="divide-y divide-slate-700/50">
-                  <tr><td colspan="5" class="py-4 text-center text-slate-500">Loading activity...</td></tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          <div class="bg-slate-800/80 border border-slate-700/60 p-6 rounded-2xl space-y-4">
-            <h3 class="font-bold text-white flex items-center gap-2"><i class="fa-solid fa-bolt text-amber-400"></i> Quick Actions</h3>
-            <div class="space-y-3">
-              <button onclick="switchTab('circulation')" class="w-full bg-indigo-600 hover:bg-indigo-500 p-3 rounded-xl font-bold text-xs flex items-center justify-between text-white transition">
-                <span>Issue New Book</span> <i class="fa-solid fa-plus"></i>
-              </button>
-              <button onclick="switchTab('books')" class="w-full bg-slate-700 hover:bg-slate-600 p-3 rounded-xl font-bold text-xs flex items-center justify-between text-white transition">
-                <span>Add Book to Inventory</span> <i class="fa-solid fa-book-medical"></i>
-              </button>
-              <button onclick="switchTab('members')" class="w-full bg-slate-700 hover:bg-slate-600 p-3 rounded-xl font-bold text-xs flex items-center justify-between text-white transition">
-                <span>Register New Member</span> <i class="fa-solid fa-user-plus"></i>
-              </button>
-            </div>
-          </div>
+<body>
+  <div class="container-fluid">
+    <div class="row">
+      <!-- Sidebar -->
+      <div class="col-md-2 sidebar p-3">
+        <h4 class="text-info fw-bold mb-4">Smart LMS</h4>
+        <nav class="nav flex-column">
+          <a class="nav-link active" href="#" onclick="showSection('dashboard')">Dashboard</a>
+          <a class="nav-link" href="#" onclick="showSection('catalog')">Book Catalog</a>
+          <a class="nav-link" href="#" onclick="showSection('recommendations')">Neo4j Recommendations</a>
+          <a class="nav-link" href="#" onclick="showSection('reviews')">MongoDB Reviews</a>
+        </nav>
+        <div class="mt-auto pt-5" id="userArea">
+          <button class="btn btn-primary w-100 mb-2" data-bs-toggle="modal" data-bs-target="#loginModal">Login</button>
+          <button class="btn btn-outline-info w-100" data-bs-toggle="modal" data-bs-target="#registerModal">Register</button>
         </div>
       </div>
 
-      <!-- TAB 2: BOOK MANAGEMENT CATALOG -->
-      <div id="tab-books" class="hidden space-y-6">
-        <div class="flex flex-col sm:flex-row justify-between items-sm-center gap-4 bg-slate-800/80 p-4 border border-slate-700/60 rounded-2xl">
-          <div class="relative flex-1">
-            <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3 text-slate-400 text-xs"></i>
-            <input type="text" id="book-search" oninput="renderBooksTable()" placeholder="Search title, author, category, ISBN..." class="w-full bg-slate-900 border border-slate-700 pl-9 pr-4 py-2 rounded-xl text-xs text-white focus:outline-none focus:border-indigo-500">
+      <!-- Main Content -->
+      <div class="col-md-10 p-4">
+        <!-- Top Banner -->
+        <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom border-secondary">
+          <h2>Library Management System <span class="badge bg-info fs-6">Capstone Edition</span></h2>
+          <span id="userInfo" class="text-warning fw-semibold">Role: Guest</span>
+        </div>
+
+        <!-- Dashboard View -->
+        <div id="dashboardSection">
+          <div class="row g-3 mb-4">
+            <div class="col-md-3">
+              <div class="card card-custom p-3">
+                <h6 class="text-secondary">TOTAL BOOKS</h6>
+                <h3 id="statTotalBooks" class="text-info">0</h3>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="card card-custom p-3">
+                <h6 class="text-secondary">AVAILABLE COPIES</h6>
+                <h3 id="statAvailable" class="text-success">0</h3>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="card card-custom p-3">
+                <h6 class="text-secondary">ACTIVE LOANS</h6>
+                <h3 id="statLoans" class="text-warning">0</h3>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="card card-custom p-3">
+                <h6 class="text-secondary">PENDING FINES</h6>
+                <h3 id="statFines" class="text-danger">$0</h3>
+              </div>
+            </div>
           </div>
-          <button onclick="openAddBookModal()" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs px-4 py-2 rounded-xl flex items-center gap-2 transition">
-            <i class="fa-solid fa-plus"></i> Add New Book
-          </button>
-        </div>
 
-        <div class="bg-slate-800/80 border border-slate-700/60 rounded-2xl overflow-hidden">
-          <table class="w-full text-left text-xs border-collapse">
-            <thead>
-              <tr class="bg-slate-900/60 text-slate-400 border-b border-slate-700 uppercase font-semibold">
-                <th class="p-3.5">ID / ISBN</th>
-                <th class="p-3.5">Title</th>
-                <th class="p-3.5">Author</th>
-                <th class="p-3.5">Category</th>
-                <th class="p-3.5">Shelf Location</th>
-                <th class="p-3.5">Stock Status</th>
-              </tr>
-            </thead>
-            <tbody id="books-table-body" class="divide-y divide-slate-700/50"></tbody>
-          </table>
-        </div>
-      </div>
-
-      <!-- TAB 3: MEMBER DIRECTORY -->
-      <div id="tab-members" class="hidden space-y-6">
-        <div class="bg-slate-800/80 border border-slate-700/60 rounded-2xl p-6">
-          <h3 class="font-bold text-white mb-4">Member Profiles & History</h3>
-          <table class="w-full text-left text-xs border-collapse">
-            <thead>
-              <tr class="text-slate-400 border-b border-slate-700 uppercase font-semibold">
-                <th class="p-3">Member ID</th>
-                <th class="p-3">Name</th>
-                <th class="p-3">Department / Role</th>
-                <th class="p-3">Email</th>
-                <th class="p-3">Membership Status</th>
-              </tr>
-            </thead>
-            <tbody id="members-table-body" class="divide-y divide-slate-700/50"></tbody>
-          </table>
-        </div>
-      </div>
-
-      <!-- TAB 4: CIRCULATION (ISSUE & RETURN) -->
-      <div id="tab-circulation" class="hidden grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div class="bg-slate-800/80 border border-slate-700/60 p-6 rounded-2xl space-y-4">
-          <h3 class="font-bold text-white text-base flex items-center gap-2"><i class="fa-solid fa-book-open text-indigo-400"></i> Issue Book (Procedure)</h3>
-          <form id="issue-book-form" class="space-y-3">
-            <div>
-              <label class="block text-xs font-semibold text-slate-400 mb-1">Member ID</label>
-              <input type="number" id="input-issue-member" required placeholder="e.g. 1" class="w-full bg-slate-900 border border-slate-700 p-2.5 rounded-xl text-xs text-white focus:outline-none focus:border-indigo-500">
+          <!-- Feature Badges for Lab Compliance -->
+          <div class="card card-custom p-3 mb-4">
+            <h5 class="text-info mb-3">Implemented Lab Integrations</h5>
+            <div class="d-flex gap-2 flex-wrap">
+              <span class="badge bg-primary p-2">Lab 3: SQL CRUD</span>
+              <span class="badge bg-secondary p-2">Lab 7: Transactions & Fines</span>
+              <span class="badge bg-success p-2">Lab 8: MongoDB Unstructured Data</span>
+              <span class="badge bg-danger p-2">Lab 9: Redis Cache</span>
+              <span class="badge bg-warning text-dark p-2">Lab 11: Neo4j Graph Recommendations</span>
+              <span class="badge bg-info text-dark p-2">Lab 12: RBAC & Auth</span>
             </div>
-            <div>
-              <label class="block text-xs font-semibold text-slate-400 mb-1">Book ID</label>
-              <input type="number" id="input-issue-book" required placeholder="e.g. 101" class="w-full bg-slate-900 border border-slate-700 p-2.5 rounded-xl text-xs text-white focus:outline-none focus:border-indigo-500">
-            </div>
-            <div>
-              <label class="block text-xs font-semibold text-slate-400 mb-1">Days Authorized</label>
-              <input type="number" id="input-issue-days" value="14" class="w-full bg-slate-900 border border-slate-700 p-2.5 rounded-xl text-xs text-white">
-            </div>
-            <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs py-3 rounded-xl transition">Execute Issue Procedure</button>
-          </form>
-        </div>
-
-        <div class="bg-slate-800/80 border border-slate-700/60 p-6 rounded-2xl space-y-4">
-          <h3 class="font-bold text-white text-base flex items-center gap-2"><i class="fa-solid fa-rotate-left text-emerald-400"></i> Process Return & Fine</h3>
-          <form id="return-book-form" class="space-y-3">
-            <div>
-              <label class="block text-xs font-semibold text-slate-400 mb-1">Transaction ID</label>
-              <input type="number" id="input-return-tx" required placeholder="e.g. 5001" class="w-full bg-slate-900 border border-slate-700 p-2.5 rounded-xl text-xs text-white focus:outline-none focus:border-emerald-500">
-            </div>
-            <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs py-3 rounded-xl transition">Return & Auto-Assess Fine</button>
-          </form>
-          <div id="return-status-box" class="hidden p-3 rounded-xl bg-slate-900 text-xs font-semibold text-center"></div>
-        </div>
-      </div>
-
-      <!-- TAB 5: FINES -->
-      <div id="tab-fines" class="hidden bg-slate-800/80 border border-slate-700/60 p-6 rounded-2xl space-y-4">
-        <h3 class="font-bold text-white">Overdue Fines & Payments</h3>
-        <table class="w-full text-left text-xs border-collapse">
-          <thead>
-            <tr class="text-slate-400 border-b border-slate-700 uppercase font-semibold">
-              <th class="p-3">Fine ID</th>
-              <th class="p-3">Member ID</th>
-              <th class="p-3">Transaction ID</th>
-              <th class="p-3">Amount</th>
-              <th class="p-3">Status</th>
-            </tr>
-          </thead>
-          <tbody id="fines-table-body" class="divide-y divide-slate-700/50"></tbody>
-        </table>
-      </div>
-
-      <!-- TAB 6: NOSQL REVIEWS -->
-      <div id="tab-reviews" class="hidden bg-slate-800/80 border border-slate-700/60 p-6 rounded-2xl space-y-4">
-        <h3 class="font-bold text-white flex items-center gap-2"><i class="fa-solid fa-leaf text-emerald-400"></i> MongoDB Unstructured Reviews Store</h3>
-        <div class="flex gap-2 max-w-md">
-          <input type="number" id="review-book-search" placeholder="Enter Book ID (e.g. 101)" class="bg-slate-900 border border-slate-700 p-2 rounded-xl text-xs text-white flex-1">
-          <button onclick="fetchMongoReviews()" class="bg-indigo-600 text-white px-4 py-2 rounded-xl font-bold text-xs">Query Reviews</button>
-        </div>
-        <div id="reviews-output" class="space-y-3 pt-4"></div>
-      </div>
-
-      <!-- TAB 7: NEO4J GRAPH -->
-      <div id="tab-recommendations" class="hidden bg-slate-800/80 border border-slate-700/60 p-6 rounded-2xl space-y-4">
-        <h3 class="font-bold text-white flex items-center gap-2"><i class="fa-solid fa-diagram-project text-amber-400"></i> Neo4j Graph Relationship Recommendations</h3>
-        <p class="text-xs text-slate-400">Graph nodes map member borrowing patterns to generate dynamic book recommendations.</p>
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
-          <div class="bg-slate-900 p-4 rounded-xl border border-slate-700">
-            <span class="text-xs text-indigo-400 font-bold">Frequently Co-Borrowed</span>
-            <h4 class="font-bold text-white mt-1 text-sm">Design Patterns in C#</h4>
-            <p class="text-[11px] text-slate-400 mt-1">Recommended for Software Engineering students.</p>
-          </div>
-          <div class="bg-slate-900 p-4 rounded-xl border border-slate-700">
-            <span class="text-xs text-indigo-400 font-bold">Category Match</span>
-            <h4 class="font-bold text-white mt-1 text-sm">High-Performance MySQL</h4>
-            <p class="text-[11px] text-slate-400 mt-1">Based on Database Systems interest.</p>
-          </div>
-          <div class="bg-slate-900 p-4 rounded-xl border border-slate-700">
-            <span class="text-xs text-indigo-400 font-bold">Popular in Department</span>
-            <h4 class="font-bold text-white mt-1 text-sm">Clean Code & Architecture</h4>
-            <p class="text-[11px] text-slate-400 mt-1">Borrowed by 84% of Computer Science seniors.</p>
           </div>
         </div>
-      </div>
 
+        <!-- Catalog View -->
+        <div id="catalogSection" style="display:none;">
+          <div class="d-flex justify-content-between mb-3">
+            <input type="text" id="searchInput" class="form-control w-50" placeholder="Search by title, author, or ISBN..." onkeyup="loadCatalog()">
+            <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addBookModal" id="addBookBtn" style="display:none;">+ Add Book</button>
+          </div>
+          <div class="table-responsive">
+            <table class="table table-dark table-hover">
+              <thead>
+                <tr>
+                  <th>ISBN</th>
+                  <th>Title</th>
+                  <th>Author</th>
+                  <th>Category</th>
+                  <th>Available</th>
+                  <th>Rack</th>
+                </tr>
+              </thead>
+              <tbody id="catalogTable"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Neo4j View -->
+        <div id="recommendationsSection" style="display:none;">
+          <h4 class="text-info mb-3">Graph Recommendation Engine (Lab 11)</h4>
+          <div id="recommendationsList" class="row g-3"></div>
+        </div>
+
+        <!-- MongoDB View -->
+        <div id="reviewsSection" style="display:none;">
+          <h4 class="text-info mb-3">Unstructured Book Reviews (Lab 8)</h4>
+          <div id="reviewsList" class="row g-3"></div>
+        </div>
+      </div>
     </div>
   </div>
 
-  <script>
-    // Fallback Mock Datasets for Instant Rich UI Presentation
-    const MOCK_BOOKS = [
-      { book_id: 101, isbn: "978-0132350884", title: "Clean Code", author: "Robert C. Martin", category_name: "Software Eng", shelf_number: "Rack A-3", available_copies: 4, total_copies: 5 },
-      { book_id: 102, isbn: "978-0596007126", title: "Head First Design Patterns", author: "Eric Freeman", category_name: "Software Eng", shelf_number: "Rack A-4", available_copies: 2, total_copies: 3 },
-      { book_id: 103, isbn: "978-1491950357", title: "Building Microservices", author: "Sam Newman", category_name: "System Architecture", shelf_number: "Rack B-1", available_copies: 0, total_copies: 2 },
-      { book_id: 104, isbn: "978-0321127426", title: "Patterns of Enterprise Architecture", author: "Martin Fowler", category_name: "System Architecture", shelf_number: "Rack B-2", available_copies: 3, total_copies: 4 }
-    ];
-
-    const MOCK_MEMBERS = [
-      { member_id: 1, name: "Ram Charan", dept: "Computer Science", email: "ram@university.edu", status: "Active" },
-      { member_id: 2, name: "Sarah Jenkins", dept: "Information Tech", email: "sarah@university.edu", status: "Active" },
-      { member_id: 3, name: "Alex Rivera", dept: "Electronics Eng", email: "alex@university.edu", status: "Active" }
-    ];
-
-    const MOCK_TX = [
-      { transaction_id: 5001, member_name: "Ram Charan", book_title: "Clean Code", issue_date: "2026-09-01", due_date: "2026-09-15", status: "Issued" },
-      { transaction_id: 5002, member_name: "Sarah Jenkins", book_title: "Head First Design Patterns", issue_date: "2026-08-20", due_date: "2026-09-03", status: "Overdue" }
-    ];
-
-    const MOCK_FINES = [
-      { fine_id: 801, member_id: 2, transaction_id: 5002, fine_amount: "$60.00", status: "Pending" }
-    ];
-
-    let cachedBooks = [];
-
-    function switchTab(tabId) {
-      const tabs = ['dashboard', 'books', 'members', 'circulation', 'fines', 'reviews', 'recommendations'];
-      tabs.forEach(t => {
-        document.getElementById(`tab-${t}`).classList.add('hidden');
-        const nav = document.getElementById(`nav-${t}`);
-        if (nav) {
-          nav.className = "w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:bg-slate-800 hover:text-white transition";
-        }
-      });
-
-      document.getElementById(`tab-${tabId}`).classList.remove('hidden');
-      const activeNav = document.getElementById(`nav-${tabId}`);
-      if (activeNav) {
-        activeNav.className = "w-full flex items-center gap-3 px-4 py-3 rounded-xl sidebar-active transition";
-      }
-    }
-
-    async function refreshData() {
-      // Books fetch with mock fallback
-      try {
-        const res = await fetch('/api/books');
-        const data = await res.json();
-        cachedBooks = (Array.isArray(data) && data.length) ? data : MOCK_BOOKS;
-      } catch (e) {
-        cachedBooks = MOCK_BOOKS;
-      }
-      renderBooksTable();
-
-      // Transactions fetch
-      try {
-        const res = await fetch('/api/reports/transactions');
-        const data = await res.json();
-        renderTransactions((Array.isArray(data) && data.length) ? data : MOCK_TX);
-      } catch (e) {
-        renderTransactions(MOCK_TX);
-      }
-
-      renderMembers(MOCK_MEMBERS);
-      renderFines(MOCK_FINES);
-    }
-
-    function renderBooksTable() {
-      const q = document.getElementById('book-search').value.toLowerCase();
-      const filtered = cachedBooks.filter(b => 
-        b.title.toLowerCase().includes(q) || 
-        (b.author && b.author.toLowerCase().includes(q)) ||
-        (b.category_name && b.category_name.toLowerCase().includes(q))
-      );
-
-      const tbody = document.getElementById('books-table-body');
-      tbody.innerHTML = filtered.map(b => `
-        <tr class="hover:bg-slate-800/40">
-          <td class="p-3.5 font-mono text-slate-400">#${b.book_id}<br><span class="text-[10px] text-slate-500">${b.isbn || ''}</span></td>
-          <td class="p-3.5 font-bold text-white">${b.title}</td>
-          <td class="p-3.5 text-slate-300">${b.author}</td>
-          <td class="p-3.5"><span class="bg-indigo-500/10 text-indigo-400 text-[11px] px-2 py-0.5 rounded font-semibold">${b.category_name}</span></td>
-          <td class="p-3.5 font-mono text-slate-400">${b.shelf_number}</td>
-          <td class="p-3.5">
-            <span class="px-2 py-0.5 rounded text-[11px] font-bold ${b.available_copies > 0 ? 'bg-emerald-500/20 text-emerald-400' : 'bg-rose-500/20 text-rose-400'}">
-              ${b.available_copies} / ${b.total_copies} Available
-            </span>
-          </td>
-        </tr>
-      `).join('');
-    }
-
-    function renderTransactions(txs) {
-      const tbody = document.getElementById('recent-tx-body');
-      tbody.innerHTML = txs.map(t => `
-        <tr>
-          <td class="py-2.5 font-mono text-indigo-400">#${t.transaction_id}</td>
-          <td class="py-2.5 font-semibold text-white">${t.member_name}</td>
-          <td class="py-2.5 text-slate-300">${t.book_title}</td>
-          <td class="py-2.5 text-slate-400">${t.due_date ? t.due_date.split('T')[0] : '2026-09-20'}</td>
-          <td class="py-2.5">
-            <span class="px-2 py-0.5 rounded text-[10px] font-bold ${t.status === 'Issued' ? 'bg-amber-500/20 text-amber-400' : 'bg-indigo-500/20 text-indigo-400'}">${t.status}</span>
-          </td>
-        </tr>
-      `).join('');
-    }
-
-    function renderMembers(m) {
-      const tbody = document.getElementById('members-table-body');
-      tbody.innerHTML = m.map(item => `
-        <tr>
-          <td class="p-3 font-mono text-indigo-400">#${item.member_id}</td>
-          <td class="p-3 font-bold text-white">${item.name}</td>
-          <td class="p-3 text-slate-300">${item.dept}</td>
-          <td class="p-3 text-slate-400">${item.email}</td>
-          <td class="p-3"><span class="bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded font-bold">${item.status}</span></td>
-        </tr>
-      `).join('');
-    }
-
-    function renderFines(f) {
-      const tbody = document.getElementById('fines-table-body');
-      tbody.innerHTML = f.map(item => `
-        <tr>
-          <td class="p-3 font-mono">#${item.fine_id}</td>
-          <td class="p-3">Member #${item.member_id}</td>
-          <td class="p-3">Tx #${item.transaction_id}</td>
-          <td class="p-3 font-bold text-rose-400">${item.fine_amount}</td>
-          <td class="p-3"><span class="bg-rose-500/20 text-rose-400 px-2 py-0.5 rounded font-bold">${item.status}</span></td>
-        </tr>
-      `).join('');
-    }
-
-    async function fetchMongoReviews() {
-      const bookId = document.getElementById('review-book-search').value || 101;
-      const out = document.getElementById('reviews-output');
-      out.innerHTML = `
-        <div class="bg-slate-900 p-4 rounded-xl border border-slate-700">
-          <div class="flex justify-between font-bold text-xs text-white">
-            <span>user@university.edu</span>
-            <span class="text-amber-400">⭐ 5/5</span>
-          </div>
-          <p class="text-xs text-slate-300 mt-2">Essential reading for software engineering practices. Clear examples and explanations.</p>
+  <!-- Login Modal -->
+  <div class="modal fade" id="loginModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header"><h5 class="modal-title">Login to Smart LMS</h5></div>
+        <div class="modal-body">
+          <input type="email" id="loginEmail" class="form-control mb-2" placeholder="Email (Admin: admin@library.com)">
+          <input type="password" id="loginPassword" class="form-control mb-3" placeholder="Password (Admin: admin123)">
+          <button class="btn btn-info w-100" onclick="performLogin()">Login</button>
         </div>
-      `;
+      </div>
+    </div>
+  </div>
+
+  <!-- Register Modal -->
+  <div class="modal fade" id="registerModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header"><h5 class="modal-title">Member Registration</h5></div>
+        <div class="modal-body">
+          <input type="text" id="regName" class="form-control mb-2" placeholder="Full Name">
+          <input type="email" id="regEmail" class="form-control mb-2" placeholder="Email">
+          <input type="password" id="regPassword" class="form-control mb-2" placeholder="Password">
+          <input type="text" id="regDept" class="form-control mb-3" placeholder="Department">
+          <button class="btn btn-primary w-100" onclick="performRegister()">Register Account</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    let currentUser = null;
+
+    async function checkAuth() {
+      const res = await fetch('/api/auth/me');
+      const data = await res.json();
+      if (data.loggedIn) {
+        currentUser = data.user;
+        document.getElementById('userInfo').innerText = `User: ${currentUser.name} (${currentUser.role})`;
+        document.getElementById('userArea').innerHTML = `<button class="btn btn-danger w-100" onclick="logout()">Logout</button>`;
+        if (currentUser.role === 'Admin') document.getElementById('addBookBtn').style.display = 'block';
+      }
     }
 
-    document.getElementById('issue-book-form').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      alert('Procedure executed: Book issued successfully!');
-      refreshData();
-    });
+    async function loadStats() {
+      const res = await fetch('/api/dashboard/stats');
+      const stats = await res.json();
+      document.getElementById('statTotalBooks').innerText = stats.totalBooks || 0;
+      document.getElementById('statAvailable').innerText = stats.availableCopies || 0;
+      document.getElementById('statLoans').innerText = stats.activeLoans || 0;
+      document.getElementById('statFines').innerText = `$${stats.pendingFines || 0}`;
+    }
 
-    document.getElementById('return-book-form').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const status = document.getElementById('return-status-box');
-      status.classList.remove('hidden');
-      status.textContent = "Book returned. Status updated to 'Returned' and available copies incremented.";
-      refreshData();
-    });
+    async function loadCatalog() {
+      const query = document.getElementById('searchInput').value;
+      const res = await fetch(`/api/books?search=${query}`);
+      const books = await res.json();
+      const tbody = document.getElementById('catalogTable');
+      tbody.innerHTML = books.map(b => `
+        <tr>
+          <td>${b.isbn}</td>
+          <td class="fw-bold">${b.title}</td>
+          <td>${b.author}</td>
+          <td><span class="badge bg-secondary">${b.category}</span></td>
+          <td>${b.available_copies} / ${b.total_copies}</td>
+          <td>${b.shelf_location}</td>
+        </tr>
+      `).join('');
+    }
 
-    refreshData();
+    async function performLogin() {
+      const email = document.getElementById('loginEmail').value;
+      const password = document.getElementById('loginPassword').value;
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        location.reload();
+      } else {
+        alert(data.error);
+      }
+    }
+
+    async function performRegister() {
+      const name = document.getElementById('regName').value;
+      const email = document.getElementById('regEmail').value;
+      const password = document.getElementById('regPassword').value;
+      const department = document.getElementById('regDept').value;
+      const res = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, password, department, role: 'Student' })
+      });
+      const data = await res.json();
+      alert(data.message || data.error);
+      if (res.ok) location.reload();
+    }
+
+    async function logout() {
+      await fetch('/api/auth/logout', { method: 'POST' });
+      location.reload();
+    }
+
+    function showSection(name) {
+      document.getElementById('dashboardSection').style.display = name === 'dashboard' ? 'block' : 'none';
+      document.getElementById('catalogSection').style.display = name === 'catalog' ? 'block' : 'none';
+      document.getElementById('recommendationsSection').style.display = name === 'recommendations' ? 'block' : 'none';
+      document.getElementById('reviewsSection').style.display = name === 'reviews' ? 'block' : 'none';
+      if (name === 'catalog') loadCatalog();
+      if (name === 'recommendations') loadRecommendations();
+      if (name === 'reviews') loadReviews();
+    }
+
+    async function loadRecommendations() {
+      const res = await fetch('/api/recommendations');
+      const data = await res.json();
+      document.getElementById('recommendationsList').innerHTML = data.recommendations.map(b => `
+        <div class="col-md-4">
+          <div class="card card-custom p-3">
+            <h5 class="text-info">${b.title}</h5>
+            <p class="text-secondary">Author: ${b.author}</p>
+            <span class="badge bg-success w-50">Category Match</span>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    async function loadReviews() {
+      const res = await fetch('/api/nosql/reviews');
+      const data = await res.json();
+      document.getElementById('reviewsList').innerHTML = data.reviews.map(r => `
+        <div class="col-md-6">
+          <div class="card card-custom p-3">
+            <h5>${r.bookTitle} <span class="text-warning">★ ${r.rating}/5</span></h5>
+            <p>"${r.comment}"</p>
+            <small class="text-secondary">- ${r.user}</small>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    checkAuth();
+    loadStats();
   </script>
 </body>
 </html>
