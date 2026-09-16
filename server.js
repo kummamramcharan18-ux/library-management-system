@@ -18,6 +18,20 @@ app.use(session({
   cookie: { secure: false, maxAge: 24 * 60 * 60 * 1000 }
 }));
 
+// SAFE MONGODB CONNECTION (Lab 8 - Optional Cloud Handler)
+if (process.env.MONGODB_URI) {
+  try {
+    const mongoose = require('mongoose');
+    mongoose.connect(process.env.MONGODB_URI)
+      .then(() => console.log('Connected to MongoDB Cloud'))
+      .catch(err => console.log('MongoDB connection skipped:', err.message));
+  } catch (err) {
+    console.log('Mongoose package not active, using fallback JSON mode.');
+  }
+} else {
+  console.log('No MONGODB_URI set. Running MongoDB endpoints in mock/demo mode.');
+}
+
 // Middleware: Authentication & RBAC (Lab 12)
 function requireAuth(req, res, next) {
   if (!req.session.user) return res.status(401).json({ error: 'Unauthorized. Please log in.' });
@@ -160,7 +174,6 @@ app.post('/api/transactions/return', requireAdmin, (req, res) => {
   db.get(`SELECT * FROM transactions WHERE id = ? AND status = 'Issued'`, [transaction_id], (err, tx) => {
     if (err || !tx) return res.status(400).json({ error: 'Active transaction not found.' });
 
-    // Calculate fine ($2 per overdue day)
     const dueDate = new Date(tx.due_date);
     const retDate = new Date(returnDate);
     let fine = 0;
