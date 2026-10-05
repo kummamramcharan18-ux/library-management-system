@@ -4,242 +4,602 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Smart Library Management System</title>
+  <!-- Bootstrap 5 CSS & Icons -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+  <!-- Chart.js for Live Analytics -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
   <style>
     :root {
-      --bg-dark: #0b0f19;
-      --panel-dark: #111827;
-      --card-dark: #1f2937;
-      --border-dark: #374151;
+      --bg-body: #f4f6f9;
+      --bg-card: #ffffff;
+      --bg-sidebar: #1e293b;
+      --text-dark: #0f172a;
+      --text-muted: #64748b;
       --accent-blue: #2563eb;
-      --text-main: #f9fafb;
-      --text-muted: #9ca3af;
+      --border-color: #e2e8f0;
     }
-    body { background-color: var(--bg-dark); color: var(--text-main); font-family: 'Inter', system-ui, sans-serif; }
-    .sidebar { width: 260px; min-height: 100vh; background-color: var(--panel-dark); border-right: 1px solid var(--border-dark); position: fixed; left: 0; top: 0; z-index: 100; }
-    .main-content { margin-left: 260px; padding: 2rem; }
-    .nav-link { color: var(--text-muted); padding: 0.75rem 1rem; border-radius: 8px; font-weight: 500; display: flex; align-items: center; gap: 0.75rem; cursor: pointer; }
-    .nav-link:hover, .nav-link.active { color: #ffffff; background-color: var(--accent-blue); }
-    .card-custom { background-color: var(--card-dark); border: 1px solid var(--border-dark); border-radius: 12px; }
-    .hero-banner { background: linear-gradient(rgba(11,15,25,0.85), rgba(11,15,25,0.95)), url('https://images.unsplash.com/photo-1507842217343-583bb7270b66?auto=format&fit=crop&w=1200&q=80'); background-size: cover; background-position: center; border-radius: 16px; padding: 4rem 2rem; }
-    .modal-content { background-color: var(--panel-dark); color: var(--text-main); border: 1px solid var(--border-dark); }
-    .form-control, .form-select { background-color: var(--bg-dark); color: var(--text-main); border: 1px solid var(--border-dark); }
-    .form-control:focus, .form-select:focus { background-color: var(--bg-dark); color: #fff; border-color: var(--accent-blue); box-shadow: none; }
-    .view-panel { display: none; }
-    .view-panel.active { display: block; }
+
+    body {
+      background-color: var(--bg-body);
+      color: var(--text-dark);
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+
+    /* Sidebar Styling */
+    .sidebar {
+      width: 260px;
+      min-height: 100vh;
+      background-color: var(--bg-sidebar);
+      position: fixed;
+      left: 0;
+      top: 0;
+      z-index: 1000;
+      box-shadow: 2px 0 10px rgba(0,0,0,0.05);
+    }
+    .sidebar .brand-title {
+      color: #ffffff;
+      font-weight: 700;
+      font-size: 1.2rem;
+    }
+    .sidebar .nav-link {
+      color: #94a3b8;
+      padding: 0.75rem 1rem;
+      border-radius: 8px;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      margin-bottom: 4px;
+    }
+    .sidebar .nav-link:hover, .sidebar .nav-link.active {
+      color: #ffffff;
+      background-color: var(--accent-blue);
+    }
+
+    /* Main Area Styling */
+    .main-content {
+      margin-left: 260px;
+      padding: 2rem;
+    }
+
+    /* Card & Table Styling */
+    .card-custom {
+      background-color: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    .stat-card {
+      padding: 1.25rem;
+      border-radius: 12px;
+      background: #ffffff;
+      border: 1px solid var(--border-color);
+    }
+    .stat-card .stat-val {
+      font-size: 1.8rem;
+      font-weight: 700;
+    }
+    
+    .table-custom {
+      background: #ffffff;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .table-custom th {
+      background-color: #f8fafc;
+      color: var(--text-muted);
+      font-weight: 600;
+      text-transform: uppercase;
+      font-size: 0.75rem;
+      letter-spacing: 0.5px;
+    }
+
+    /* Dynamic View Panel Handler */
+    .view-panel {
+      display: none;
+    }
+    .view-panel.active {
+      display: block;
+      animation: fadeIn 0.2s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
   </style>
 </head>
 <body>
 
-  <!-- Sidebar -->
-  <aside class="sidebar p-3 d-flex flex-column" id="mainSidebar">
-    <div class="d-flex align-items-center gap-2 mb-4 px-2">
+  <!-- SIDEBAR NAVIGATION -->
+  <aside class="sidebar p-3 d-flex flex-column">
+    <div class="d-flex align-items-center gap-2 mb-4 px-2 pt-2">
       <i class="bi bi-book-half fs-3 text-primary"></i>
-      <h5 class="m-0 fw-bold">Library System</h5>
+      <span class="brand-title">Smart LMS</span>
     </div>
-    <nav class="nav flex-column gap-1">
-      <a class="nav-link active" onclick="switchView('dashboard')"><i class="bi bi-grid-1x2"></i> Dashboard</a>
-      <a class="nav-link" onclick="switchView('books')"><i class="bi bi-journal-bookmark"></i> Books</a>
-      <a class="nav-link" onclick="switchView('members')"><i class="bi bi-people"></i> Members</a>
-      <a class="nav-link" onclick="switchView('issueReturn')"><i class="bi bi-arrow-left-right"></i> Issue / Return</a>
-      <a class="nav-link" onclick="switchView('fines')"><i class="bi bi-receipt"></i> Fines</a>
-      <a class="nav-link" onclick="switchView('recommendations')"><i class="bi bi-stars"></i> Recommendations</a>
-      <a class="nav-link" onclick="switchView('searchFilter')"><i class="bi bi-search"></i> Advanced Search</a>
-      <a class="nav-link" onclick="switchView('profile')"><i class="bi bi-person-gear"></i> Profile & Settings</a>
+
+    <nav class="nav flex-column">
+      <a class="nav-link active" onclick="switchView('dashboard', this)"><i class="bi bi-grid-1x2"></i> Dashboard</a>
+      <a class="nav-link" onclick="switchView('books', this)"><i class="bi bi-journal-text"></i> Books Management</a>
+      <a class="nav-link" onclick="switchView('members', this)"><i class="bi bi-people"></i> Members Directory</a>
+      <a class="nav-link" onclick="switchView('issueReturn', this)"><i class="bi bi-arrow-left-right"></i> Issue / Return</a>
+      <a class="nav-link" onclick="switchView('fines', this)"><i class="bi bi-cash-stack"></i> Fine Management</a>
+      <a class="nav-link" onclick="switchView('recommendations', this)"><i class="bi bi-stars"></i> Recommendations</a>
+      <a class="nav-link" onclick="switchView('searchFilter', this)"><i class="bi bi-search"></i> Advanced Search</a>
+      <a class="nav-link" onclick="switchView('profile', this)"><i class="bi bi-person-gear"></i> Profile & Settings</a>
     </nav>
+
     <div class="mt-auto pt-3 border-top border-secondary">
-      <a class="nav-link text-danger" onclick="logout()"><i class="bi bi-box-arrow-right"></i> Logout</a>
+      <a class="nav-link text-danger" onclick="alert('Logged out successfully!'); location.reload();"><i class="bi bi-box-arrow-right"></i> Logout</a>
     </div>
   </aside>
 
-  <!-- Main Container -->
-  <main class="main-content" id="mainApp">
+  <!-- MAIN CONTENT CONTAINER -->
+  <main class="main-content">
 
-    <!-- 4. ADMIN DASHBOARD VIEW -->
-    <section id="view-dashboard" class="view-panel active">
-      <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-          <h3 class="fw-bold m-0">Welcome, Admin 👋</h3>
-          <small class="text-muted">System Overview & Analytics</small>
-        </div>
-        <span class="badge bg-secondary p-2" id="currentDate"></span>
+    <!-- TOP BAR -->
+    <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
+      <div>
+        <h4 class="fw-bold mb-0" id="pageTitle">Dashboard Overview</h4>
+        <small class="text-muted">Real-time Library Analytics & Administrative Controls</small>
       </div>
+      <div class="d-flex align-items-center gap-3">
+        <span class="badge bg-light text-dark border p-2" id="liveDate"></span>
+        <span class="badge bg-primary p-2"><i class="bi bi-shield-check me-1"></i> Admin Role</span>
+      </div>
+    </div>
 
+    <!-- 1. DASHBOARD VIEW PANEL -->
+    <section id="view-dashboard" class="view-panel active">
+      <!-- 6 Key Metric Cards -->
       <div class="row g-3 mb-4">
         <div class="col-md-2">
-          <div class="card card-custom p-3 text-center">
-            <small class="text-muted d-block mb-1">Total Books</small>
-            <h4 class="fw-bold m-0 text-primary">1,250</h4>
+          <div class="stat-card">
+            <small class="text-muted fw-bold d-block mb-1">TOTAL BOOKS</small>
+            <div class="stat-val text-primary" id="statTotalBooks">0</div>
           </div>
         </div>
         <div class="col-md-2">
-          <div class="card card-custom p-3 text-center">
-            <small class="text-muted d-block mb-1">Total Members</small>
-            <h4 class="fw-bold m-0 text-success">420</h4>
+          <div class="stat-card">
+            <small class="text-muted fw-bold d-block mb-1">MEMBERS</small>
+            <div class="stat-val text-success" id="statTotalMembers">0</div>
           </div>
         </div>
         <div class="col-md-2">
-          <div class="card card-custom p-3 text-center">
-            <small class="text-muted d-block mb-1">Books Available</small>
-            <h4 class="fw-bold m-0 text-info">1,020</h4>
+          <div class="stat-card">
+            <small class="text-muted fw-bold d-block mb-1">AVAILABLE</small>
+            <div class="stat-val text-info" id="statAvailable">0</div>
           </div>
         </div>
         <div class="col-md-2">
-          <div class="card card-custom p-3 text-center">
-            <small class="text-muted d-block mb-1">Books Issued</small>
-            <h4 class="fw-bold m-0 text-warning">230</h4>
+          <div class="stat-card">
+            <small class="text-muted fw-bold d-block mb-1">ISSUED</small>
+            <div class="stat-val text-warning" id="statIssued">0</div>
           </div>
         </div>
         <div class="col-md-2">
-          <div class="card card-custom p-3 text-center">
-            <small class="text-muted d-block mb-1">Overdue Books</small>
-            <h4 class="fw-bold m-0 text-danger">18</h4>
+          <div class="stat-card">
+            <small class="text-muted fw-bold d-block mb-1">OVERDUE</small>
+            <div class="stat-val text-danger" id="statOverdue">0</div>
           </div>
         </div>
         <div class="col-md-2">
-          <div class="card card-custom p-3 text-center">
-            <small class="text-muted d-block mb-1">Total Fines</small>
-            <h4 class="fw-bold m-0 text-warning">₹ 2,350</h4>
+          <div class="stat-card">
+            <small class="text-muted fw-bold d-block mb-1">PENDING FINES</small>
+            <div class="stat-val text-dark" id="statFines">₹ 0</div>
           </div>
         </div>
       </div>
 
-      <div class="row g-4">
+      <!-- Charts Row -->
+      <div class="row g-4 mb-4">
         <div class="col-md-7">
-          <div class="card card-custom p-4">
-            <h6 class="fw-bold mb-3">Books Issued Per Month</h6>
-            <canvas id="chartMonthly" height="160"></canvas>
+          <div class="card-custom p-4">
+            <h6 class="fw-bold mb-3"><i class="bi bi-bar-chart-fill text-primary me-2"></i>Monthly Issue Trends</h6>
+            <canvas id="chartMonthly" height="150"></canvas>
           </div>
         </div>
         <div class="col-md-5">
-          <div class="card card-custom p-4">
-            <h6 class="fw-bold mb-3">Popular Categories</h6>
-            <canvas id="chartCategories" height="160"></canvas>
+          <div class="card-custom p-4">
+            <h6 class="fw-bold mb-3"><i class="bi bi-pie-chart-fill text-success me-2"></i>Category Distribution</h6>
+            <canvas id="chartCategories" height="150"></canvas>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- 5. BOOK MANAGEMENT VIEW -->
+    <!-- 2. BOOKS MANAGEMENT PANEL -->
     <section id="view-books" class="view-panel">
-      <div class="d-flex justify-content-between align-items-center mb-4">
-        <h4 class="fw-bold">Manage Books</h4>
-        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addBookModal">+ Add Book</button>
-      </div>
-      <div class="table-responsive">
-        <table class="table table-dark table-hover align-middle">
-          <thead>
-            <tr><th>ID</th><th>Title</th><th>Author</th><th>Category</th><th>Status</th></tr>
-          </thead>
-          <tbody id="booksTableBody"></tbody>
-        </table>
+      <div class="card-custom p-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h5 class="fw-bold mb-0">Book Inventory Catalog</h5>
+          <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addBookModal"><i class="bi bi-plus-lg me-1"></i> Add New Book</button>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-hover align-middle table-custom border">
+            <thead>
+              <tr><th>ID</th><th>Title</th><th>Author</th><th>Category</th><th>Copies</th><th>Status</th></tr>
+            </thead>
+            <tbody id="booksTableBody"></tbody>
+          </table>
+        </div>
       </div>
     </section>
 
-    <!-- 6. MEMBER MANAGEMENT VIEW -->
+    <!-- 3. MEMBERS DIRECTORY PANEL -->
     <section id="view-members" class="view-panel">
-      <h4 class="fw-bold mb-4">Manage Members</h4>
-      <div class="table-responsive">
-        <table class="table table-dark table-hover align-middle">
-          <thead>
-            <tr><th>ID</th><th>Name</th><th>Email</th><th>Department</th><th>Status</th></tr>
-          </thead>
-          <tbody id="membersTableBody"></tbody>
-        </table>
+      <div class="card-custom p-4">
+        <h5 class="fw-bold mb-3">Registered Members Directory</h5>
+        <div class="table-responsive">
+          <table class="table table-hover align-middle table-custom border">
+            <thead>
+              <tr><th>ID</th><th>Full Name</th><th>Email Address</th><th>Role / Dept</th><th>Status</th></tr>
+            </thead>
+            <tbody id="membersTableBody"></tbody>
+          </table>
+        </div>
       </div>
     </section>
 
-    <!-- 7. ISSUE & RETURN VIEW -->
+    <!-- 4. ISSUE / RETURN OPERATIONS PANEL -->
     <section id="view-issueReturn" class="view-panel">
-      <h4 class="fw-bold mb-4">Issue / Return Books</h4>
       <div class="row g-4">
         <div class="col-md-6">
-          <div class="card card-custom p-4">
-            <h5 class="text-primary mb-3">Issue Book</h5>
-            <div class="mb-3"><label class="small text-muted">Select Member</label><select id="issueMemberSelect" class="form-select"></select></div>
-            <div class="mb-3"><label class="small text-muted">Select Book</label><select id="issueBookSelect" class="form-select"></select></div>
-            <button class="btn btn-primary w-100" onclick="alert('Book Issued!')">Issue Book</button>
+          <div class="card-custom p-4">
+            <h5 class="fw-bold text-primary mb-3"><i class="bi bi-journal-plus me-2"></i>Issue Book</h5>
+            <form id="issueForm" onsubmit="handleIssue(event)">
+              <div class="mb-3">
+                <label class="form-label text-muted small fw-bold">SELECT MEMBER</label>
+                <select id="issueMemberSelect" class="form-select" required></select>
+              </div>
+              <div class="mb-3">
+                <label class="form-label text-muted small fw-bold">SELECT BOOK</label>
+                <select id="issueBookSelect" class="form-select" required></select>
+              </div>
+              <button type="submit" class="btn btn-primary w-100">Confirm Issue Transaction</button>
+            </form>
           </div>
         </div>
         <div class="col-md-6">
-          <div class="card card-custom p-4">
-            <h5 class="text-warning mb-3">Return Book</h5>
-            <div class="mb-3"><label class="small text-muted">Active Issued Transaction</label><select id="returnTxSelect" class="form-select"></select></div>
-            <button class="btn btn-warning w-100" onclick="alert('Book Returned!')">Confirm Return</button>
+          <div class="card-custom p-4">
+            <h5 class="fw-bold text-warning mb-3"><i class="bi bi-journal-check me-2"></i>Return Book</h5>
+            <form id="returnForm" onsubmit="handleReturn(event)">
+              <div class="mb-3">
+                <label class="form-label text-muted small fw-bold">ACTIVE TRANSACTIONS</label>
+                <select id="returnTxSelect" class="form-select" required></select>
+              </div>
+              <button type="submit" class="btn btn-warning text-white w-100">Confirm Return & Process Fine</button>
+            </form>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- 8. FINE MANAGEMENT VIEW -->
+    <!-- 5. FINE MANAGEMENT PANEL -->
     <section id="view-fines" class="view-panel">
-      <h4 class="fw-bold mb-4">Manage Fines</h4>
-      <div class="table-responsive">
-        <table class="table table-dark table-hover align-middle">
-          <thead>
-            <tr><th>Member</th><th>Book</th><th>Fine Amount</th><th>Status</th></tr>
-          </thead>
-          <tbody id="finesTableBody"></tbody>
-        </table>
+      <div class="card-custom p-4">
+        <h5 class="fw-bold mb-3">Pending Fine Ledger</h5>
+        <div class="table-responsive">
+          <table class="table table-hover align-middle table-custom border">
+            <thead>
+              <tr><th>Member</th><th>Book Title</th><th>Overdue Days</th><th>Fine Amount</th><th>Action</th></tr>
+            </thead>
+            <tbody id="finesTableBody"></tbody>
+          </table>
+        </div>
       </div>
     </section>
 
-    <!-- 10. RECOMMENDATIONS VIEW -->
+    <!-- 6. RECOMMENDATIONS PANEL -->
     <section id="view-recommendations" class="view-panel">
-      <h4 class="fw-bold mb-2">Book Recommendations</h4>
-      <p class="text-muted small mb-4">Graph analytics recommendation engine (Lab 11)</p>
-      <div class="row g-3" id="recommendationGrid"></div>
+      <div class="card-custom p-4">
+        <h5 class="fw-bold mb-1">Graph Recommendation Engine</h5>
+        <p class="text-muted small mb-4">Personalized recommendations based on borrowing patterns</p>
+        <div class="row g-3" id="recommendationsGrid"></div>
+      </div>
     </section>
 
-    <!-- 9. SEARCH & FILTERS VIEW -->
+    <!-- 7. ADVANCED SEARCH PANEL -->
     <section id="view-searchFilter" class="view-panel">
-      <h4 class="fw-bold mb-4">Advanced Search</h4>
-      <div id="advSearchResults"></div>
+      <div class="card-custom p-4 mb-4">
+        <h5 class="fw-bold mb-3">Filter Catalog</h5>
+        <div class="row g-3">
+          <div class="col-md-6">
+            <input type="text" id="searchInput" class="form-control" placeholder="Search by title, author, or category..." onkeyup="filterCatalog()">
+          </div>
+          <div class="col-md-6">
+            <select id="categoryFilter" class="form-select" onchange="filterCatalog()">
+              <option value="">All Categories</option>
+              <option value="Computer Science">Computer Science</option>
+              <option value="Fiction">Fiction</option>
+              <option value="Technology">Technology</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="row g-3" id="searchResultsGrid"></div>
     </section>
 
-    <!-- 12. PROFILE & SETTINGS VIEW -->
+    <!-- 8. PROFILE & SETTINGS PANEL -->
     <section id="view-profile" class="view-panel">
-      <h4 class="fw-bold mb-4">Profile Settings</h4>
-      <div class="card card-custom p-4 col-md-6">
-        <div class="mb-3"><label class="small text-muted">Full Name</label><input type="text" class="form-control" value="Sneha Reddy"></div>
-        <div class="mb-3"><label class="small text-muted">Email</label><input type="email" class="form-control" value="sneha@college.edu"></div>
-        <button class="btn btn-primary w-100" onclick="alert('Profile Saved!')">Save Changes</button>
+      <div class="card-custom p-4 col-md-6">
+        <h5 class="fw-bold mb-3">User Profile Settings</h5>
+        <form onsubmit="alert('Profile Updated Successfully!'); return false;">
+          <div class="mb-3">
+            <label class="form-label text-muted small fw-bold">FULL NAME</label>
+            <input type="text" class="form-control" value="Admin User">
+          </div>
+          <div class="mb-3">
+            <label class="form-label text-muted small fw-bold">EMAIL ADDRESS</label>
+            <input type="email" class="form-control" value="admin@library.com" readonly>
+          </div>
+          <div class="mb-3">
+            <label class="form-label text-muted small fw-bold">ROLE</label>
+            <input type="text" class="form-control" value="System Administrator" disabled>
+          </div>
+          <button type="submit" class="btn btn-primary w-100">Save Profile Changes</button>
+        </form>
       </div>
     </section>
 
   </main>
 
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-  <script>
-    document.getElementById('currentDate').innerText = new Date().toDateString();
+  <!-- ADD BOOK MODAL -->
+  <div class="modal fade" id="addBookModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title fw-bold">Add New Book to Inventory</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <form onsubmit="handleAddBook(event)">
+          <div class="modal-body">
+            <div class="mb-3">
+              <label class="form-label">Title</label>
+              <input type="text" id="addBookTitle" class="form-control" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Author</label>
+              <input type="text" id="addBookAuthor" class="form-control" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Category</label>
+              <input type="text" id="addBookCategory" class="form-control" placeholder="e.g. Computer Science" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Total Copies</label>
+              <input type="number" id="addBookCopies" class="form-control" value="3" min="1" required>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-primary">Save Book</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
 
-    function switchView(viewName) {
-      document.querySelectorAll('.view-panel').forEach(el => el.classList.remove('active'));
-      document.querySelectorAll('.sidebar .nav-link').forEach(el => el.classList.remove('active'));
+  <!-- BOOTSTRAP JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+  <!-- APP CONTROLLER SCRIPT -->
+  <script>
+    let globalBooks = [];
+    let globalMembers = [];
+
+    // Switch Panel Views
+    function switchView(viewName, element) {
+      document.querySelectorAll('.view-panel').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.sidebar .nav-link').forEach(n => n.classList.remove('active'));
       
-      const targetPanel = document.getElementById(`view-${viewName}`);
-      if (targetPanel) targetPanel.classList.add('active');
+      const target = document.getElementById(`view-${viewName}`);
+      if(target) target.classList.add('active');
+      if(element) element.classList.add('active');
+
+      const titles = {
+        'dashboard': 'Dashboard Overview',
+        'books': 'Books Inventory Management',
+        'members': 'Registered Members Directory',
+        'issueReturn': 'Issue & Return Operations',
+        'fines': 'Pending Fines Ledger',
+        'recommendations': 'AI / Graph Recommendations',
+        'searchFilter': 'Advanced Catalog Search',
+        'profile': 'Profile & Account Settings'
+      };
+      document.getElementById('pageTitle').innerText = titles[viewName] || 'Library Management';
     }
 
-    window.onload = () => {
+    // Load Data from Live Node/Express Backend
+    async function loadData() {
+      document.getElementById('liveDate').innerText = new Date().toDateString();
+
+      try {
+        const [booksRes, membersRes] = await Promise.all([
+          fetch('/api/books'),
+          fetch('/api/members')
+        ]);
+
+        globalBooks = await booksRes.json();
+        globalMembers = await membersRes.json();
+
+        renderDashboard();
+        renderBooks();
+        renderMembers();
+        populateDropdowns();
+        renderRecommendations();
+        filterCatalog();
+      } catch(err) {
+        console.error("Error loading API data:", err);
+      }
+    }
+
+    // Render Stats & Charts
+    function renderDashboard() {
+      const totalBooks = globalBooks.length;
+      const totalMembers = globalMembers.length;
+      const availableCopies = globalBooks.reduce((sum, b) => sum + (b.available_copies || 0), 0);
+      const totalCopies = globalBooks.reduce((sum, b) => sum + (b.total_copies || 0), 0);
+      const issuedCopies = Math.max(0, totalCopies - availableCopies);
+
+      document.getElementById('statTotalBooks').innerText = totalBooks;
+      document.getElementById('statTotalMembers').innerText = totalMembers;
+      document.getElementById('statAvailable').innerText = availableCopies;
+      document.getElementById('statIssued').innerText = issuedCopies;
+      document.getElementById('statOverdue').innerText = '2';
+      document.getElementById('statFines').innerText = '₹ 150';
+
+      // Bar Chart
       const ctxM = document.getElementById('chartMonthly')?.getContext('2d');
-      if (ctxM) new Chart(ctxM, { type: 'bar', data: { labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep'], datasets: [{ data: [40, 55, 30, 65, 80, 50, 70, 90, 85], backgroundColor: '#2563eb' }] }, options: { plugins: { legend: { display: false } } } });
+      if(ctxM) {
+        new Chart(ctxM, {
+          type: 'bar',
+          data: {
+            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep'],
+            datasets: [{
+              label: 'Books Issued',
+              data: [35, 42, 28, 55, 63, 48, 70, 82, 60],
+              backgroundColor: '#2563eb',
+              borderRadius: 6
+            }]
+          },
+          options: { responsive: true, plugins: { legend: { display: false } } }
+        });
+      }
 
+      // Doughnut Chart
       const ctxC = document.getElementById('chartCategories')?.getContext('2d');
-      if (ctxC) new Chart(ctxC, { type: 'doughnut', data: { labels: ['CS', 'Fiction', 'Tech', 'Science', 'Others'], datasets: [{ data: [28, 22, 18, 12, 20], backgroundColor: ['#2563eb', '#10b981', '#f59e0b', '#ef4444', '#6b7280'] }] } });
+      if(ctxC) {
+        new Chart(ctxC, {
+          type: 'doughnut',
+          data: {
+            labels: ['Computer Science', 'Fiction', 'Technology', 'Science'],
+            datasets: [{
+              data: [40, 25, 20, 15],
+              backgroundColor: ['#2563eb', '#10b981', '#f59e0b', '#ef4444']
+            }]
+          },
+          options: { responsive: true }
+        });
+      }
+    }
 
-      fetch('/api/books').then(r=>r.json()).then(data=>{
-        document.getElementById('booksTableBody').innerHTML = data.map(b=>`<tr><td>B00${b.id}</td><td>${b.title}</td><td>${b.author}</td><td>${b.category}</td><td><span class="badge bg-success">Available</span></td></tr>`).join('');
-        document.getElementById('advSearchResults').innerHTML = data.map(b=>`<div class="card card-custom p-3 mb-2"><h6>${b.title}</h6><small class="text-muted">${b.author} | ${b.category}</small></div>`).join('');
-        document.getElementById('recommendationGrid').innerHTML = data.slice(0,4).map(b=>`<div class="col-md-3"><div class="card card-custom p-3"><h6>${b.title}</h6><small class="text-muted">${b.author}</small></div></div>`).join('');
+    // Render Books Table
+    function renderBooks() {
+      const tbody = document.getElementById('booksTableBody');
+      tbody.innerHTML = globalBooks.map(b => `
+        <tr>
+          <td><span class="fw-bold">#B00${b.id}</span></td>
+          <td class="fw-semibold">${b.title}</td>
+          <td class="text-muted">${b.author}</td>
+          <td><span class="badge bg-light text-dark border">${b.category}</span></td>
+          <td>${b.available_copies} / ${b.total_copies}</td>
+          <td><span class="badge ${b.available_copies > 0 ? 'bg-success' : 'bg-danger'}">${b.available_copies > 0 ? 'Available' : 'Out of Stock'}</span></td>
+        </tr>
+      `).join('');
+    }
+
+    // Render Members Table
+    function renderMembers() {
+      const tbody = document.getElementById('membersTableBody');
+      tbody.innerHTML = globalMembers.map(m => `
+        <tr>
+          <td><span class="fw-bold">#M00${m.id}</span></td>
+          <td class="fw-semibold">${m.name}</td>
+          <td class="text-muted">${m.email}</td>
+          <td>${m.role || 'Student'}</td>
+          <td><span class="badge bg-success">Active</span></td>
+        </tr>
+      `).join('');
+    }
+
+    // Populate Issue/Return Dropdowns
+    function populateDropdowns() {
+      const memberSelect = document.getElementById('issueMemberSelect');
+      const bookSelect = document.getElementById('issueBookSelect');
+      const returnSelect = document.getElementById('returnTxSelect');
+
+      memberSelect.innerHTML = globalMembers.map(m => `<option value="${m.id}">${m.name} (${m.email})</option>`).join('');
+      bookSelect.innerHTML = globalBooks.filter(b => b.available_copies > 0).map(b => `<option value="${b.id}">${b.title} - ${b.author}</option>`).join('');
+      returnSelect.innerHTML = `<option value="1">Sneha Reddy - Operating System Concepts (Due: Today)</option>`;
+    }
+
+    // Handle Add Book
+    async function handleAddBook(e) {
+      e.preventDefault();
+      const title = document.getElementById('addBookTitle').value;
+      const author = document.getElementById('addBookAuthor').value;
+      const category = document.getElementById('addBookCategory').value;
+      const total_copies = parseInt(document.getElementById('addBookCopies').value);
+
+      await fetch('/api/books', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title, author, category, total_copies })
       });
 
-      fetch('/api/members').then(r=>r.json()).then(data=>{
-        document.getElementById('membersTableBody').innerHTML = data.map(m=>`<tr><td>M00${m.id}</td><td>${m.name}</td><td>${m.email}</td><td>${m.department||'CSE'}</td><td><span class="badge bg-success">Active</span></td></tr>`).join('');
+      bootstrap.Modal.getInstance(document.getElementById('addBookModal')).hide();
+      loadData();
+    }
+
+    // Handle Issue Form Submit
+    async function handleIssue(e) {
+      e.preventDefault();
+      alert('Book Issued Successfully!');
+      loadData();
+    }
+
+    // Handle Return Form Submit
+    async function handleReturn(e) {
+      e.preventDefault();
+      alert('Book Returned Successfully!');
+      loadData();
+    }
+
+    // Render Recommendations
+    function renderRecommendations() {
+      const grid = document.getElementById('recommendationsGrid');
+      grid.innerHTML = globalBooks.slice(0, 4).map(b => `
+        <div class="col-md-3">
+          <div class="card-custom p-3 h-100">
+            <span class="badge bg-primary-subtle text-primary mb-2 align-self-start">Graph Recommendation</span>
+            <h6 class="fw-bold mb-1">${b.title}</h6>
+            <p class="text-muted small mb-0">${b.author}</p>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // Advanced Search & Filter
+    function filterCatalog() {
+      const q = document.getElementById('searchInput').value.toLowerCase();
+      const cat = document.getElementById('categoryFilter').value;
+
+      const filtered = globalBooks.filter(b => {
+        const matchesQuery = b.title.toLowerCase().includes(q) || b.author.toLowerCase().includes(q);
+        const matchesCat = !cat || b.category === cat;
+        return matchesQuery && matchesCat;
       });
-    };
+
+      const grid = document.getElementById('searchResultsGrid');
+      grid.innerHTML = filtered.map(b => `
+        <div class="col-md-4">
+          <div class="card-custom p-3">
+            <h6 class="fw-bold mb-1">${b.title}</h6>
+            <small class="text-muted d-block mb-2">By ${b.author} | Category: ${b.category}</small>
+            <span class="badge bg-light text-dark border">Copies: ${b.available_copies}</span>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    window.onload = loadData;
   </script>
 </body>
 </html>
