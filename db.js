@@ -50,7 +50,7 @@ db.serialize(() => {
     FOREIGN KEY(book_id) REFERENCES books(id)
   )`);
 
-  // Seed Admin Account & Default Catalog
+  // Seed Default Admin Account & Catalog Items
   const adminPassword = bcrypt.hashSync('admin123', 10);
   db.run(`INSERT OR IGNORE INTO users (id, name, email, password, role, department) 
           VALUES (1, 'System Administrator', 'admin@library.com', ?, 'Admin', 'Library Operations')`, [adminPassword]);
