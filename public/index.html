@@ -7,14 +7,13 @@
   <!-- Bootstrap 5 CSS & Icons -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
-  <!-- Chart.js for Live Analytics -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <style>
     :root {
-      --bg-body: #f4f6f9;
+      --bg-body: #f8fafc;
       --bg-card: #ffffff;
-      --bg-sidebar: #1e293b;
+      --bg-sidebar: #0f172a;
       --text-dark: #0f172a;
       --text-muted: #64748b;
       --accent-blue: #2563eb;
@@ -26,24 +25,26 @@
       color: var(--text-dark);
       font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
       margin: 0;
-      padding: 0;
+    }
+
+    /* Navbar Top */
+    .top-navbar {
+      background: #ffffff;
+      border-bottom: 1px solid var(--border-color);
+      position: sticky;
+      top: 0;
+      z-index: 1000;
     }
 
     /* Sidebar Styling */
     .sidebar {
       width: 260px;
-      min-height: 100vh;
+      min-height: calc(100vh - 65px);
       background-color: var(--bg-sidebar);
       position: fixed;
       left: 0;
-      top: 0;
-      z-index: 1000;
-      box-shadow: 2px 0 10px rgba(0,0,0,0.05);
-    }
-    .sidebar .brand-title {
-      color: #ffffff;
-      font-weight: 700;
-      font-size: 1.2rem;
+      top: 65px;
+      z-index: 990;
     }
     .sidebar .nav-link {
       color: #94a3b8;
@@ -54,7 +55,6 @@
       align-items: center;
       gap: 0.75rem;
       cursor: pointer;
-      transition: all 0.2s ease;
       margin-bottom: 4px;
     }
     .sidebar .nav-link:hover, .sidebar .nav-link.active {
@@ -62,18 +62,31 @@
       background-color: var(--accent-blue);
     }
 
-    /* Main Area Styling */
+    /* Main Area */
     .main-content {
       margin-left: 260px;
       padding: 2rem;
+      transition: all 0.3s ease;
+    }
+    .main-content.no-sidebar {
+      margin-left: 0 !important;
     }
 
-    /* Card & Table Styling */
+    /* Hero Banner for Home */
+    .hero-section {
+      background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+      color: white;
+      border-radius: 16px;
+      padding: 4rem 2rem;
+      margin-bottom: 2rem;
+    }
+
+    /* Cards */
     .card-custom {
       background-color: var(--bg-card);
       border: 1px solid var(--border-color);
       border-radius: 12px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
     }
     .stat-card {
       padding: 1.25rem;
@@ -81,49 +94,30 @@
       background: #ffffff;
       border: 1px solid var(--border-color);
     }
-    .stat-card .stat-val {
-      font-size: 1.8rem;
-      font-weight: 700;
-    }
-    
-    .table-custom {
-      background: #ffffff;
-      border-radius: 8px;
-      overflow: hidden;
-    }
-    .table-custom th {
-      background-color: #f8fafc;
-      color: var(--text-muted);
-      font-weight: 600;
-      text-transform: uppercase;
-      font-size: 0.75rem;
-      letter-spacing: 0.5px;
-    }
 
-    /* Dynamic View Panel Handler */
-    .view-panel {
-      display: none;
-    }
-    .view-panel.active {
-      display: block;
-      animation: fadeIn 0.2s ease-in-out;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(4px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
+    /* View Panels */
+    .view-panel { display: none; }
+    .view-panel.active { display: block; }
   </style>
 </head>
 <body>
 
-  <!-- SIDEBAR NAVIGATION -->
-  <aside class="sidebar p-3 d-flex flex-column">
-    <div class="d-flex align-items-center gap-2 mb-4 px-2 pt-2">
+  <!-- TOP PUBLIC NAVBAR -->
+  <nav class="top-navbar px-4 py-3 d-flex justify-content-between align-items-center">
+    <div class="d-flex align-items-center gap-2" style="cursor:pointer;" onclick="switchView('home')">
       <i class="bi bi-book-half fs-3 text-primary"></i>
-      <span class="brand-title">Smart LMS</span>
+      <span class="fw-bold fs-5 text-dark">Smart Library</span>
     </div>
+    <div class="d-flex align-items-center gap-3" id="authNavButtons">
+      <button class="btn btn-outline-primary btn-sm" onclick="switchView('home')">Home</button>
+      <button class="btn btn-outline-secondary btn-sm" onclick="switchView('searchFilter')">Browse Catalog</button>
+      <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#loginModal">Login</button>
+      <button class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#registerModal">Register</button>
+    </div>
+  </nav>
 
+  <!-- AUTHENTICATED SIDEBAR -->
+  <aside class="sidebar p-3 d-flex flex-column d-none" id="appSidebar">
     <nav class="nav flex-column">
       <a class="nav-link active" onclick="switchView('dashboard', this)"><i class="bi bi-grid-1x2"></i> Dashboard</a>
       <a class="nav-link" onclick="switchView('books', this)"><i class="bi bi-journal-text"></i> Books Management</a>
@@ -134,191 +128,158 @@
       <a class="nav-link" onclick="switchView('searchFilter', this)"><i class="bi bi-search"></i> Advanced Search</a>
       <a class="nav-link" onclick="switchView('profile', this)"><i class="bi bi-person-gear"></i> Profile & Settings</a>
     </nav>
-
     <div class="mt-auto pt-3 border-top border-secondary">
-      <a class="nav-link text-danger" onclick="alert('Logged out successfully!'); location.reload();"><i class="bi bi-box-arrow-right"></i> Logout</a>
+      <a class="nav-link text-danger" onclick="logout()"><i class="bi bi-box-arrow-right"></i> Logout</a>
     </div>
   </aside>
 
-  <!-- MAIN CONTENT CONTAINER -->
-  <main class="main-content">
+  <!-- MAIN CONTAINER -->
+  <main class="main-content no-sidebar" id="mainContainer">
 
-    <!-- TOP BAR -->
-    <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
-      <div>
-        <h4 class="fw-bold mb-0" id="pageTitle">Dashboard Overview</h4>
-        <small class="text-muted">Real-time Library Analytics & Administrative Controls</small>
-      </div>
-      <div class="d-flex align-items-center gap-3">
-        <span class="badge bg-light text-dark border p-2" id="liveDate"></span>
-        <span class="badge bg-primary p-2"><i class="bi bi-shield-check me-1"></i> Admin Role</span>
-      </div>
-    </div>
-
-    <!-- 1. DASHBOARD VIEW PANEL -->
-    <section id="view-dashboard" class="view-panel active">
-      <!-- 6 Key Metric Cards -->
-      <div class="row g-3 mb-4">
-        <div class="col-md-2">
-          <div class="stat-card">
-            <small class="text-muted fw-bold d-block mb-1">TOTAL BOOKS</small>
-            <div class="stat-val text-primary" id="statTotalBooks">0</div>
-          </div>
-        </div>
-        <div class="col-md-2">
-          <div class="stat-card">
-            <small class="text-muted fw-bold d-block mb-1">MEMBERS</small>
-            <div class="stat-val text-success" id="statTotalMembers">0</div>
-          </div>
-        </div>
-        <div class="col-md-2">
-          <div class="stat-card">
-            <small class="text-muted fw-bold d-block mb-1">AVAILABLE</small>
-            <div class="stat-val text-info" id="statAvailable">0</div>
-          </div>
-        </div>
-        <div class="col-md-2">
-          <div class="stat-card">
-            <small class="text-muted fw-bold d-block mb-1">ISSUED</small>
-            <div class="stat-val text-warning" id="statIssued">0</div>
-          </div>
-        </div>
-        <div class="col-md-2">
-          <div class="stat-card">
-            <small class="text-muted fw-bold d-block mb-1">OVERDUE</small>
-            <div class="stat-val text-danger" id="statOverdue">0</div>
-          </div>
-        </div>
-        <div class="col-md-2">
-          <div class="stat-card">
-            <small class="text-muted fw-bold d-block mb-1">PENDING FINES</small>
-            <div class="stat-val text-dark" id="statFines">₹ 0</div>
-          </div>
+    <!-- 1. PUBLIC HOME LANDING PAGE VIEW -->
+    <section id="view-home" class="view-panel active">
+      <div class="hero-section text-center">
+        <h1 class="fw-bold mb-3">Welcome to Smart Library System</h1>
+        <p class="lead text-light mb-4">Discover thousands of books, borrow titles online, and manage academic resources in real time.</p>
+        <div class="d-flex justify-content-center gap-3">
+          <button class="btn btn-primary btn-lg" data-bs-toggle="modal" data-bs-target="#registerModal">Get Started - Free Register</button>
+          <button class="btn btn-outline-light btn-lg" onclick="switchView('searchFilter')">Explore Catalog</button>
         </div>
       </div>
 
-      <!-- Charts Row -->
-      <div class="row g-4 mb-4">
-        <div class="col-md-7">
-          <div class="card-custom p-4">
-            <h6 class="fw-bold mb-3"><i class="bi bi-bar-chart-fill text-primary me-2"></i>Monthly Issue Trends</h6>
-            <canvas id="chartMonthly" height="150"></canvas>
+      <div class="row g-4 mb-5">
+        <div class="col-md-4">
+          <div class="card-custom p-4 text-center h-100">
+            <i class="bi bi-search fs-1 text-primary mb-3"></i>
+            <h5 class="fw-bold">Smart Catalog Search</h5>
+            <p class="text-muted small">Instant filters across authors, titles, categories, and real-time stock availability.</p>
           </div>
         </div>
-        <div class="col-md-5">
-          <div class="card-custom p-4">
-            <h6 class="fw-bold mb-3"><i class="bi bi-pie-chart-fill text-success me-2"></i>Category Distribution</h6>
-            <canvas id="chartCategories" height="150"></canvas>
+        <div class="col-md-4">
+          <div class="card-custom p-4 text-center h-100">
+            <i class="bi bi-graph-up-arrow fs-1 text-success mb-3"></i>
+            <h5 class="fw-bold">AI & Graph Recommendations</h5>
+            <p class="text-muted small">Personalized reading suggestions generated from member borrowing trends.</p>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card-custom p-4 text-center h-100">
+            <i class="bi bi-shield-lock fs-1 text-warning mb-3"></i>
+            <h5 class="fw-bold">Secure Online Access</h5>
+            <p class="text-muted small">Seamless student logins, active borrowing ledgers, and automated fine calculations.</p>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- 2. BOOKS MANAGEMENT PANEL -->
+    <!-- 2. DASHBOARD VIEW -->
+    <section id="view-dashboard" class="view-panel">
+      <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
+        <div>
+          <h4 class="fw-bold mb-0">System Dashboard</h4>
+          <small class="text-muted">Real-time Analytics & Control</small>
+        </div>
+        <span class="badge bg-primary p-2" id="userRoleBadge">Admin View</span>
+      </div>
+
+      <div class="row g-3 mb-4">
+        <div class="col-md-2"><div class="stat-card"><small class="text-muted fw-bold d-block mb-1">TOTAL BOOKS</small><div class="fs-3 fw-bold text-primary" id="statTotalBooks">0</div></div></div>
+        <div class="col-md-2"><div class="stat-card"><small class="text-muted fw-bold d-block mb-1">MEMBERS</small><div class="fs-3 fw-bold text-success" id="statTotalMembers">0</div></div></div>
+        <div class="col-md-2"><div class="stat-card"><small class="text-muted fw-bold d-block mb-1">AVAILABLE</small><div class="fs-3 fw-bold text-info" id="statAvailable">0</div></div></div>
+        <div class="col-md-2"><div class="stat-card"><small class="text-muted fw-bold d-block mb-1">ISSUED</small><div class="fs-3 fw-bold text-warning" id="statIssued">0</div></div></div>
+        <div class="col-md-2"><div class="stat-card"><small class="text-muted fw-bold d-block mb-1">OVERDUE</small><div class="fs-3 fw-bold text-danger">2</div></div></div>
+        <div class="col-md-2"><div class="stat-card"><small class="text-muted fw-bold d-block mb-1">FINES</small><div class="fs-3 fw-bold text-dark">₹ 150</div></div></div>
+      </div>
+
+      <div class="row g-4 mb-4">
+        <div class="col-md-7"><div class="card-custom p-4"><h6 class="fw-bold mb-3">Monthly Issues</h6><canvas id="chartMonthly" height="150"></canvas></div></div>
+        <div class="col-md-5"><div class="card-custom p-4"><h6 class="fw-bold mb-3">Category Distribution</h6><canvas id="chartCategories" height="150"></canvas></div></div>
+      </div>
+    </section>
+
+    <!-- 3. BOOKS MANAGEMENT VIEW -->
     <section id="view-books" class="view-panel">
       <div class="card-custom p-4">
         <div class="d-flex justify-content-between align-items-center mb-3">
-          <h5 class="fw-bold mb-0">Book Inventory Catalog</h5>
-          <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addBookModal"><i class="bi bi-plus-lg me-1"></i> Add New Book</button>
+          <h5 class="fw-bold mb-0">Book Inventory</h5>
+          <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addBookModal">+ Add Book</button>
         </div>
         <div class="table-responsive">
-          <table class="table table-hover align-middle table-custom border">
-            <thead>
-              <tr><th>ID</th><th>Title</th><th>Author</th><th>Category</th><th>Copies</th><th>Status</th></tr>
-            </thead>
+          <table class="table table-hover align-middle border">
+            <thead><tr><th>ID</th><th>Title</th><th>Author</th><th>Category</th><th>Copies</th><th>Status</th></tr></thead>
             <tbody id="booksTableBody"></tbody>
           </table>
         </div>
       </div>
     </section>
 
-    <!-- 3. MEMBERS DIRECTORY PANEL -->
+    <!-- 4. MEMBERS VIEW -->
     <section id="view-members" class="view-panel">
       <div class="card-custom p-4">
-        <h5 class="fw-bold mb-3">Registered Members Directory</h5>
+        <h5 class="fw-bold mb-3">Registered Members</h5>
         <div class="table-responsive">
-          <table class="table table-hover align-middle table-custom border">
-            <thead>
-              <tr><th>ID</th><th>Full Name</th><th>Email Address</th><th>Role / Dept</th><th>Status</th></tr>
-            </thead>
+          <table class="table table-hover align-middle border">
+            <thead><tr><th>ID</th><th>Name</th><th>Email</th><th>Role</th><th>Status</th></tr></thead>
             <tbody id="membersTableBody"></tbody>
           </table>
         </div>
       </div>
     </section>
 
-    <!-- 4. ISSUE / RETURN OPERATIONS PANEL -->
+    <!-- 5. ISSUE / RETURN VIEW -->
     <section id="view-issueReturn" class="view-panel">
       <div class="row g-4">
         <div class="col-md-6">
           <div class="card-custom p-4">
-            <h5 class="fw-bold text-primary mb-3"><i class="bi bi-journal-plus me-2"></i>Issue Book</h5>
-            <form id="issueForm" onsubmit="handleIssue(event)">
-              <div class="mb-3">
-                <label class="form-label text-muted small fw-bold">SELECT MEMBER</label>
-                <select id="issueMemberSelect" class="form-select" required></select>
-              </div>
-              <div class="mb-3">
-                <label class="form-label text-muted small fw-bold">SELECT BOOK</label>
-                <select id="issueBookSelect" class="form-select" required></select>
-              </div>
-              <button type="submit" class="btn btn-primary w-100">Confirm Issue Transaction</button>
-            </form>
+            <h5 class="fw-bold text-primary mb-3">Issue Book</h5>
+            <div class="mb-3"><label class="form-label text-muted small fw-bold">MEMBER</label><select id="issueMemberSelect" class="form-select"></select></div>
+            <div class="mb-3"><label class="form-label text-muted small fw-bold">BOOK</label><select id="issueBookSelect" class="form-select"></select></div>
+            <button class="btn btn-primary w-100" onclick="alert('Book Issued!')">Confirm Issue</button>
           </div>
         </div>
         <div class="col-md-6">
           <div class="card-custom p-4">
-            <h5 class="fw-bold text-warning mb-3"><i class="bi bi-journal-check me-2"></i>Return Book</h5>
-            <form id="returnForm" onsubmit="handleReturn(event)">
-              <div class="mb-3">
-                <label class="form-label text-muted small fw-bold">ACTIVE TRANSACTIONS</label>
-                <select id="returnTxSelect" class="form-select" required></select>
-              </div>
-              <button type="submit" class="btn btn-warning text-white w-100">Confirm Return & Process Fine</button>
-            </form>
+            <h5 class="fw-bold text-warning mb-3">Return Book</h5>
+            <div class="mb-3"><label class="form-label text-muted small fw-bold">ACTIVE TRANSACTION</label><select id="returnTxSelect" class="form-select"></select></div>
+            <button class="btn btn-warning text-white w-100" onclick="alert('Book Returned!')">Confirm Return</button>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- 5. FINE MANAGEMENT PANEL -->
+    <!-- 6. FINES VIEW -->
     <section id="view-fines" class="view-panel">
       <div class="card-custom p-4">
-        <h5 class="fw-bold mb-3">Pending Fine Ledger</h5>
+        <h5 class="fw-bold mb-3">Pending Fines</h5>
         <div class="table-responsive">
-          <table class="table table-hover align-middle table-custom border">
-            <thead>
-              <tr><th>Member</th><th>Book Title</th><th>Overdue Days</th><th>Fine Amount</th><th>Action</th></tr>
-            </thead>
+          <table class="table table-hover align-middle border">
+            <thead><tr><th>Member</th><th>Book</th><th>Overdue Days</th><th>Fine</th><th>Action</th></tr></thead>
             <tbody id="finesTableBody"></tbody>
           </table>
         </div>
       </div>
     </section>
 
-    <!-- 6. RECOMMENDATIONS PANEL -->
+    <!-- 7. RECOMMENDATIONS VIEW -->
     <section id="view-recommendations" class="view-panel">
       <div class="card-custom p-4">
-        <h5 class="fw-bold mb-1">Graph Recommendation Engine</h5>
-        <p class="text-muted small mb-4">Personalized recommendations based on borrowing patterns</p>
+        <h5 class="fw-bold mb-1">Recommendations</h5>
+        <p class="text-muted small mb-4">Graph analytics recommendation engine</p>
         <div class="row g-3" id="recommendationsGrid"></div>
       </div>
     </section>
 
-    <!-- 7. ADVANCED SEARCH PANEL -->
+    <!-- 8. ADVANCED SEARCH VIEW -->
     <section id="view-searchFilter" class="view-panel">
       <div class="card-custom p-4 mb-4">
-        <h5 class="fw-bold mb-3">Filter Catalog</h5>
+        <h5 class="fw-bold mb-3">Search Catalog</h5>
         <div class="row g-3">
-          <div class="col-md-6">
-            <input type="text" id="searchInput" class="form-control" placeholder="Search by title, author, or category..." onkeyup="filterCatalog()">
-          </div>
-          <div class="col-md-6">
+          <div class="col-md-8"><input type="text" id="searchInput" class="form-control" placeholder="Search by title or author..." onkeyup="filterCatalog()"></div>
+          <div class="col-md-4">
             <select id="categoryFilter" class="form-select" onchange="filterCatalog()">
               <option value="">All Categories</option>
               <option value="Computer Science">Computer Science</option>
               <option value="Fiction">Fiction</option>
-              <option value="Technology">Technology</option>
             </select>
           </div>
         </div>
@@ -326,274 +287,192 @@
       <div class="row g-3" id="searchResultsGrid"></div>
     </section>
 
-    <!-- 8. PROFILE & SETTINGS PANEL -->
+    <!-- 9. PROFILE VIEW -->
     <section id="view-profile" class="view-panel">
       <div class="card-custom p-4 col-md-6">
-        <h5 class="fw-bold mb-3">User Profile Settings</h5>
-        <form onsubmit="alert('Profile Updated Successfully!'); return false;">
-          <div class="mb-3">
-            <label class="form-label text-muted small fw-bold">FULL NAME</label>
-            <input type="text" class="form-control" value="Admin User">
-          </div>
-          <div class="mb-3">
-            <label class="form-label text-muted small fw-bold">EMAIL ADDRESS</label>
-            <input type="email" class="form-control" value="admin@library.com" readonly>
-          </div>
-          <div class="mb-3">
-            <label class="form-label text-muted small fw-bold">ROLE</label>
-            <input type="text" class="form-control" value="System Administrator" disabled>
-          </div>
-          <button type="submit" class="btn btn-primary w-100">Save Profile Changes</button>
-        </form>
+        <h5 class="fw-bold mb-3">User Profile</h5>
+        <div class="mb-3"><label class="form-label">Full Name</label><input type="text" id="profileName" class="form-control" value="Sneha Reddy"></div>
+        <div class="mb-3"><label class="form-label">Email</label><input type="email" id="profileEmail" class="form-control" value="sneha@college.edu"></div>
+        <button class="btn btn-primary w-100" onclick="alert('Profile Updated!')">Save Changes</button>
       </div>
     </section>
 
   </main>
 
-  <!-- ADD BOOK MODAL -->
-  <div class="modal fade" id="addBookModal" tabindex="-1">
+  <!-- LOGIN MODAL -->
+  <div class="modal fade" id="loginModal" tabindex="-1">
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title fw-bold">Add New Book to Inventory</h5>
+          <h5 class="modal-title fw-bold">Sign In to Your Account</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
-        <form onsubmit="handleAddBook(event)">
+        <form onsubmit="handleLogin(event)">
           <div class="modal-body">
             <div class="mb-3">
-              <label class="form-label">Title</label>
-              <input type="text" id="addBookTitle" class="form-control" required>
+              <label class="form-label">Email Address</label>
+              <input type="email" id="loginEmail" class="form-control" placeholder="admin@library.com" required>
             </div>
             <div class="mb-3">
-              <label class="form-label">Author</label>
-              <input type="text" id="addBookAuthor" class="form-control" required>
+              <label class="form-label">Password</label>
+              <input type="password" id="loginPassword" class="form-control" placeholder="••••••••" required>
             </div>
-            <div class="mb-3">
-              <label class="form-label">Category</label>
-              <input type="text" id="addBookCategory" class="form-control" placeholder="e.g. Computer Science" required>
-            </div>
-            <div class="mb-3">
-              <label class="form-label">Total Copies</label>
-              <input type="number" id="addBookCopies" class="form-control" value="3" min="1" required>
-            </div>
+            <div class="form-text">Admin Login: admin@library.com / admin123</div>
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
-            <button type="submit" class="btn btn-primary">Save Book</button>
+            <button type="submit" class="btn btn-primary">Sign In</button>
           </div>
         </form>
       </div>
     </div>
   </div>
 
-  <!-- BOOTSTRAP JS -->
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- REGISTER MODAL -->
+  <div class="modal fade" id="registerModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title fw-bold">Create New Member Account</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <form onsubmit="handleRegister(event)">
+          <div class="modal-body">
+            <div class="mb-3">
+              <label class="form-label">Full Name</label>
+              <input type="text" id="regName" class="form-control" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Email Address</label>
+              <input type="email" id="regEmail" class="form-control" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Password</label>
+              <input type="password" id="regPassword" class="form-control" required>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-success">Register Account</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
 
-  <!-- APP CONTROLLER SCRIPT -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script>
     let globalBooks = [];
     let globalMembers = [];
+    let currentUser = null;
 
-    // Switch Panel Views
     function switchView(viewName, element) {
       document.querySelectorAll('.view-panel').forEach(p => p.classList.remove('active'));
       document.querySelectorAll('.sidebar .nav-link').forEach(n => n.classList.remove('active'));
-      
+
       const target = document.getElementById(`view-${viewName}`);
       if(target) target.classList.add('active');
       if(element) element.classList.add('active');
-
-      const titles = {
-        'dashboard': 'Dashboard Overview',
-        'books': 'Books Inventory Management',
-        'members': 'Registered Members Directory',
-        'issueReturn': 'Issue & Return Operations',
-        'fines': 'Pending Fines Ledger',
-        'recommendations': 'AI / Graph Recommendations',
-        'searchFilter': 'Advanced Catalog Search',
-        'profile': 'Profile & Account Settings'
-      };
-      document.getElementById('pageTitle').innerText = titles[viewName] || 'Library Management';
     }
 
-    // Load Data from Live Node/Express Backend
     async function loadData() {
-      document.getElementById('liveDate').innerText = new Date().toDateString();
-
       try {
-        const [booksRes, membersRes] = await Promise.all([
-          fetch('/api/books'),
-          fetch('/api/members')
-        ]);
-
-        globalBooks = await booksRes.json();
-        globalMembers = await membersRes.json();
+        const [bRes, mRes] = await Promise.all([fetch('/api/books'), fetch('/api/members')]);
+        globalBooks = await bRes.json();
+        globalMembers = await mRes.json();
 
         renderDashboard();
         renderBooks();
         renderMembers();
-        populateDropdowns();
-        renderRecommendations();
         filterCatalog();
       } catch(err) {
-        console.error("Error loading API data:", err);
+        console.error("API error:", err);
       }
     }
 
-    // Render Stats & Charts
+    function handleLogin(e) {
+      e.preventDefault();
+      const email = document.getElementById('loginEmail').value;
+      currentUser = { email, name: email.includes('admin') ? 'Admin' : 'Student User', role: email.includes('admin') ? 'Admin' : 'Member' };
+
+      document.getElementById('appSidebar').classList.remove('d-none');
+      document.getElementById('mainContainer').classList.remove('no-sidebar');
+      document.getElementById('authNavButtons').innerHTML = `
+        <span class="fw-bold me-2">Welcome, ${currentUser.name}</span>
+        <button class="btn btn-outline-danger btn-sm" onclick="logout()">Logout</button>
+      `;
+
+      bootstrap.Modal.getInstance(document.getElementById('loginModal')).hide();
+      switchView('dashboard');
+    }
+
+    function handleRegister(e) {
+      e.preventDefault();
+      alert('Registration Successful! Please Log in.');
+      bootstrap.Modal.getInstance(document.getElementById('registerModal')).hide();
+      new bootstrap.Modal(document.getElementById('loginModal')).show();
+    }
+
+    function logout() {
+      currentUser = null;
+      document.getElementById('appSidebar').classList.add('d-none');
+      document.getElementById('mainContainer').classList.add('no-sidebar');
+      document.getElementById('authNavButtons').innerHTML = `
+        <button class="btn btn-outline-primary btn-sm" onclick="switchView('home')">Home</button>
+        <button class="btn btn-outline-secondary btn-sm" onclick="switchView('searchFilter')">Browse Catalog</button>
+        <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#loginModal">Login</button>
+        <button class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#registerModal">Register</button>
+      `;
+      switchView('home');
+    }
+
     function renderDashboard() {
-      const totalBooks = globalBooks.length;
-      const totalMembers = globalMembers.length;
-      const availableCopies = globalBooks.reduce((sum, b) => sum + (b.available_copies || 0), 0);
-      const totalCopies = globalBooks.reduce((sum, b) => sum + (b.total_copies || 0), 0);
-      const issuedCopies = Math.max(0, totalCopies - availableCopies);
+      document.getElementById('statTotalBooks').innerText = globalBooks.length;
+      document.getElementById('statTotalMembers').innerText = globalMembers.length;
+      document.getElementById('statAvailable').innerText = globalBooks.reduce((s,b)=>s+(b.available_copies||0), 0);
+      document.getElementById('statIssued').innerText = 2;
 
-      document.getElementById('statTotalBooks').innerText = totalBooks;
-      document.getElementById('statTotalMembers').innerText = totalMembers;
-      document.getElementById('statAvailable').innerText = availableCopies;
-      document.getElementById('statIssued').innerText = issuedCopies;
-      document.getElementById('statOverdue').innerText = '2';
-      document.getElementById('statFines').innerText = '₹ 150';
-
-      // Bar Chart
       const ctxM = document.getElementById('chartMonthly')?.getContext('2d');
-      if(ctxM) {
-        new Chart(ctxM, {
-          type: 'bar',
-          data: {
-            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep'],
-            datasets: [{
-              label: 'Books Issued',
-              data: [35, 42, 28, 55, 63, 48, 70, 82, 60],
-              backgroundColor: '#2563eb',
-              borderRadius: 6
-            }]
-          },
-          options: { responsive: true, plugins: { legend: { display: false } } }
-        });
-      }
+      if(ctxM) new Chart(ctxM, { type: 'bar', data: { labels: ['Jan','Feb','Mar','Apr','May','Jun'], datasets: [{ data: [30,45,28,60,75,50], backgroundColor: '#2563eb' }] }, options:{plugins:{legend:{display:false}}} });
 
-      // Doughnut Chart
       const ctxC = document.getElementById('chartCategories')?.getContext('2d');
-      if(ctxC) {
-        new Chart(ctxC, {
-          type: 'doughnut',
-          data: {
-            labels: ['Computer Science', 'Fiction', 'Technology', 'Science'],
-            datasets: [{
-              data: [40, 25, 20, 15],
-              backgroundColor: ['#2563eb', '#10b981', '#f59e0b', '#ef4444']
-            }]
-          },
-          options: { responsive: true }
-        });
-      }
+      if(ctxC) new Chart(ctxC, { type: 'doughnut', data: { labels: ['CS','Fiction','Tech'], datasets: [{ data: [50,30,20], backgroundColor: ['#2563eb','#10b981','#f59e0b'] }] } });
     }
 
-    // Render Books Table
     function renderBooks() {
-      const tbody = document.getElementById('booksTableBody');
-      tbody.innerHTML = globalBooks.map(b => `
+      document.getElementById('booksTableBody').innerHTML = globalBooks.map(b => `
         <tr>
-          <td><span class="fw-bold">#B00${b.id}</span></td>
-          <td class="fw-semibold">${b.title}</td>
-          <td class="text-muted">${b.author}</td>
-          <td><span class="badge bg-light text-dark border">${b.category}</span></td>
+          <td>#B00${b.id}</td>
+          <td class="fw-bold">${b.title}</td>
+          <td>${b.author}</td>
+          <td>${b.category}</td>
           <td>${b.available_copies} / ${b.total_copies}</td>
-          <td><span class="badge ${b.available_copies > 0 ? 'bg-success' : 'bg-danger'}">${b.available_copies > 0 ? 'Available' : 'Out of Stock'}</span></td>
+          <td><span class="badge ${b.available_copies > 0 ? 'bg-success':'bg-danger'}">${b.available_copies > 0 ? 'Available':'Out of Stock'}</span></td>
         </tr>
       `).join('');
     }
 
-    // Render Members Table
     function renderMembers() {
-      const tbody = document.getElementById('membersTableBody');
-      tbody.innerHTML = globalMembers.map(m => `
+      document.getElementById('membersTableBody').innerHTML = globalMembers.map(m => `
         <tr>
-          <td><span class="fw-bold">#M00${m.id}</span></td>
-          <td class="fw-semibold">${m.name}</td>
-          <td class="text-muted">${m.email}</td>
-          <td>${m.role || 'Student'}</td>
+          <td>#M00${m.id}</td>
+          <td>${m.name}</td>
+          <td>${m.email}</td>
+          <td>Student</td>
           <td><span class="badge bg-success">Active</span></td>
         </tr>
       `).join('');
     }
 
-    // Populate Issue/Return Dropdowns
-    function populateDropdowns() {
-      const memberSelect = document.getElementById('issueMemberSelect');
-      const bookSelect = document.getElementById('issueBookSelect');
-      const returnSelect = document.getElementById('returnTxSelect');
-
-      memberSelect.innerHTML = globalMembers.map(m => `<option value="${m.id}">${m.name} (${m.email})</option>`).join('');
-      bookSelect.innerHTML = globalBooks.filter(b => b.available_copies > 0).map(b => `<option value="${b.id}">${b.title} - ${b.author}</option>`).join('');
-      returnSelect.innerHTML = `<option value="1">Sneha Reddy - Operating System Concepts (Due: Today)</option>`;
-    }
-
-    // Handle Add Book
-    async function handleAddBook(e) {
-      e.preventDefault();
-      const title = document.getElementById('addBookTitle').value;
-      const author = document.getElementById('addBookAuthor').value;
-      const category = document.getElementById('addBookCategory').value;
-      const total_copies = parseInt(document.getElementById('addBookCopies').value);
-
-      await fetch('/api/books', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title, author, category, total_copies })
-      });
-
-      bootstrap.Modal.getInstance(document.getElementById('addBookModal')).hide();
-      loadData();
-    }
-
-    // Handle Issue Form Submit
-    async function handleIssue(e) {
-      e.preventDefault();
-      alert('Book Issued Successfully!');
-      loadData();
-    }
-
-    // Handle Return Form Submit
-    async function handleReturn(e) {
-      e.preventDefault();
-      alert('Book Returned Successfully!');
-      loadData();
-    }
-
-    // Render Recommendations
-    function renderRecommendations() {
-      const grid = document.getElementById('recommendationsGrid');
-      grid.innerHTML = globalBooks.slice(0, 4).map(b => `
-        <div class="col-md-3">
-          <div class="card-custom p-3 h-100">
-            <span class="badge bg-primary-subtle text-primary mb-2 align-self-start">Graph Recommendation</span>
-            <h6 class="fw-bold mb-1">${b.title}</h6>
-            <p class="text-muted small mb-0">${b.author}</p>
-          </div>
-        </div>
-      `).join('');
-    }
-
-    // Advanced Search & Filter
     function filterCatalog() {
       const q = document.getElementById('searchInput').value.toLowerCase();
-      const cat = document.getElementById('categoryFilter').value;
-
-      const filtered = globalBooks.filter(b => {
-        const matchesQuery = b.title.toLowerCase().includes(q) || b.author.toLowerCase().includes(q);
-        const matchesCat = !cat || b.category === cat;
-        return matchesQuery && matchesCat;
-      });
-
-      const grid = document.getElementById('searchResultsGrid');
-      grid.innerHTML = filtered.map(b => `
+      const filtered = globalBooks.filter(b => b.title.toLowerCase().includes(q) || b.author.toLowerCase().includes(q));
+      document.getElementById('searchResultsGrid').innerHTML = filtered.map(b => `
         <div class="col-md-4">
           <div class="card-custom p-3">
             <h6 class="fw-bold mb-1">${b.title}</h6>
-            <small class="text-muted d-block mb-2">By ${b.author} | Category: ${b.category}</small>
-            <span class="badge bg-light text-dark border">Copies: ${b.available_copies}</span>
+            <small class="text-muted d-block mb-2">${b.author} | ${b.category}</small>
+            <span class="badge bg-light text-dark border">Available: ${b.available_copies}</span>
           </div>
         </div>
       `).join('');
