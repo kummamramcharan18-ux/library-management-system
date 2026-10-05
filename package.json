@@ -1,7 +1,7 @@
 {
   "name": "smart-library-management-system",
   "version": "1.0.0",
-  "description": "Smart LMS Capstone Project",
+  "description": "Smart LMS Capstone Project - Production Deployment",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
