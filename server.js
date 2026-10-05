@@ -18,18 +18,18 @@ app.use(session({
   cookie: { secure: false, maxAge: 24 * 60 * 60 * 1000 }
 }));
 
-// SAFE MONGODB CONNECTION (Lab 8 - Optional Cloud Handler)
+// Safe Optional MongoDB Connection (Prevents server crashes on free tier)
 if (process.env.MONGODB_URI) {
   try {
     const mongoose = require('mongoose');
     mongoose.connect(process.env.MONGODB_URI)
       .then(() => console.log('Connected to MongoDB Cloud'))
-      .catch(err => console.log('MongoDB connection skipped:', err.message));
+      .catch(err => console.log('MongoDB skipped:', err.message));
   } catch (err) {
-    console.log('Mongoose package not active, using fallback JSON mode.');
+    console.log('Mongoose not active; running in demo mode.');
   }
 } else {
-  console.log('No MONGODB_URI set. Running MongoDB endpoints in mock/demo mode.');
+  console.log('No MONGODB_URI set. MongoDB endpoints running in mock mode.');
 }
 
 // Middleware: Authentication & RBAC (Lab 12)
@@ -139,7 +139,7 @@ app.post('/api/books', requireAdmin, (req, res) => {
   );
 });
 
-// --- ISSUE & RETURN TRANSACTIONS WITH CONCURRENCY & FINES (Lab 7) ---
+// --- TRANSACTIONS & AUTOMATED FINES (Lab 7) ---
 app.post('/api/transactions/issue', requireAdmin, (req, res) => {
   const { user_id, book_id, due_days } = req.body;
   const issueDate = new Date().toISOString().split('T')[0];
